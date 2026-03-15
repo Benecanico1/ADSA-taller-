@@ -61,7 +61,7 @@ const Login = () => {
             }
 
             if (role === 'super_admin') {
-                navigate('/super-admin');
+                navigate('/saas-admin');
             } else if (role === 'admin' || role === 'admin_empresa') {
                 navigate('/admin');
             } else if (role === 'mechanic') {
@@ -114,7 +114,7 @@ const Login = () => {
             await addAuditLog(`Inicio de sesión exitoso con Google (${role})`, 'auth', userCredential.user.email);
 
             if (role === 'super_admin') {
-                navigate('/super-admin');
+                navigate('/saas-admin');
             } else if (role === 'admin' || role === 'admin_empresa') {
                 navigate('/admin');
             } else if (role === 'mechanic') {

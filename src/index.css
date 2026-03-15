@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #25d1f4;
+  --color-background-light: #f5f8f8;
+  --color-background-dark: #101f22;
+  --color-garage-dark: #0a1214;
+  --color-surface-dark: #161b2a;
+  --color-accent-neon: #00f2ff;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-technical: "Roboto Condensed", sans-serif;
+  --font-manrope: "Manrope", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen;
+    min-height: max(884px, 100dvh);
+  }
+}
+
+@layer utilities {
+  .carbon-pattern {
+    background-color: #101f22;
+    background-image: linear-gradient(45deg, #0d181a 25%, transparent 25%),
+      linear-gradient(-45deg, #0d181a 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #0d181a 75%),
+      linear-gradient(-45deg, transparent 75%, #0d181a 75%);
+    background-size: 4px 4px;
+  }
+
+  .neon-border-focus:focus-within {
+    box-shadow: 0 0 8px rgba(37, 209, 244, 0.4);
+    border-color: #25d1f4;
+  }
+}

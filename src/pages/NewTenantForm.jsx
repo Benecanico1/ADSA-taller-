@@ -3,12 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { db } from '../lib/firebase';
 import { collection, addDoc, doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { initializeApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { firebaseConfig } from '../lib/firebase';
 
 const NewTenantForm = () => {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [createAdmin, setCreateAdmin] = useState(false);
+    
+    const [adminDatos, setAdminDatos] = useState({
+        email: '',
+        password: '',
+        displayName: ''
+    });
+
+    const handleAdminChange = (e) => {
+        setAdminDatos({ ...adminDatos, [e.target.name]: e.target.value });
+    };
 
     const [empresaDatos, setEmpresaDatos] = useState({
         name: '',
@@ -65,10 +79,40 @@ const NewTenantForm = () => {
             });
 
             // Navigation success
-            alert(`Taller registrado exitosamente. ID Empresa: ${empresaId}.
-            
-Nota: Debes crear al usuario Administrador de este taller solicitándole que se registre y luego asignándole el rol 'empresa_admin' con este empresaId y sucursalId.`);
-            
+            let successMessage = `Taller registrado exitosamente. ID Empresa: ${empresaId}.`;
+
+            if (createAdmin && adminDatos.email && adminDatos.password) {
+                try {
+                    // Create Secondary App to avoid logging out Super Admin
+                    const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
+                    const secondaryAuth = getAuth(secondaryApp);
+                    
+                    const res = await createUserWithEmailAndPassword(secondaryAuth, adminDatos.email, adminDatos.password);
+                    
+                    // Create User Document
+                    await setDoc(doc(db, 'Users', res.user.uid), {
+                        email: adminDatos.email,
+                        displayName: adminDatos.displayName || 'Administrador',
+                        role: 'empresa_admin',
+                        empresaId: empresaId,
+                        sucursalId: sucursalRef.id,
+                        status: 'active',
+                        createdAt: serverTimestamp()
+                    });
+
+                    // Avoid staying logged in on secondary app
+                    await signOut(secondaryAuth);
+                    
+                    successMessage += `\nCuenta de Administrador (${adminDatos.email}) creada y vinculada correctamente.`;
+                } catch (authErr) {
+                    console.error("Error creating admin user:", authErr);
+                    successMessage += `\nPero hubo un error al crear el usuario administrador: ${authErr.message}`;
+                }
+            } else {
+                successMessage += `\nNota: Debes crear al usuario Administrador de este taller solicitándole que se registre y luego asignándole el rol 'empresa_admin' con este empresaId y sucursalId.`;
+            }
+
+            alert(successMessage);
             navigate('/saas-admin');
 
         } catch (err) {
@@ -226,6 +270,72 @@ Nota: Debes crear al usuario Administrador de este taller solicitándole que se 
                                 />
                             </div>
                         </div>
+                    </div>
+
+                    {/* Sección Creación Automática de Administrador */}
+                    <div className="bg-[#161b2a] border border-slate-800 rounded-2xl p-6 shadow-sm">
+                        <div className="flex items-center justify-between mb-6 border-b border-slate-800 pb-4">
+                            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                                <span className="material-symbols-outlined text-indigo-400">shield_person</span>
+                                Alta de Usuario Administrador (Opcional)
+                            </h2>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    className="sr-only peer" 
+                                    checked={createAdmin}
+                                    onChange={(e) => setCreateAdmin(e.target.checked)}
+                                />
+                                <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500"></div>
+                            </label>
+                        </div>
+
+                        {createAdmin && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up">
+                                <div className="space-y-1 md:col-span-2">
+                                    <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Nombre del Administrador *</label>
+                                    <input 
+                                        type="text" 
+                                        name="displayName"
+                                        required={createAdmin}
+                                        value={adminDatos.displayName}
+                                        onChange={handleAdminChange}
+                                        className="w-full bg-[#0a0c14] border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-indigo-500 focus:outline-none transition-colors"
+                                        placeholder="Ej. Juan Pérez"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Correo Electrónico (Login) *</label>
+                                    <input 
+                                        type="email" 
+                                        name="email"
+                                        required={createAdmin}
+                                        value={adminDatos.email}
+                                        onChange={handleAdminChange}
+                                        className="w-full bg-[#0a0c14] border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-indigo-500 focus:outline-none transition-colors"
+                                        placeholder="admin@sucursal.com"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Contraseña Provisoria *</label>
+                                    <input 
+                                        type="text" 
+                                        name="password"
+                                        required={createAdmin}
+                                        value={adminDatos.password}
+                                        onChange={handleAdminChange}
+                                        className="w-full bg-[#0a0c14] border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-indigo-500 focus:outline-none transition-colors"
+                                        placeholder="Genera una contraseña fuerte"
+                                    />
+                                </div>
+                                <div className="md:col-span-2 mt-2">
+                                    <p className="text-[10px] text-emerald-400 flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-[14px]">info</span>
+                                        El sistema le asignará el rol "empresa_admin" vinculado a esta nueva Franquicia inmediatamente.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Submit Button */}

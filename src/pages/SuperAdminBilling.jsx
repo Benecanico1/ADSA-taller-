@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { db } from '../lib/firebase';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-import EditTenantModal from '../components/EditTenantModal';
 
-const SuperAdminDashboard = () => {
+const SuperAdminBilling = () => {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [empresas, setEmpresas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedEmpresa, setSelectedEmpresa] = useState(null);
 
     useEffect(() => {
-        // Redirigir si no es super admin
         if (currentUser?.role !== 'super_admin') {
             navigate('/dashboard');
             return;
@@ -33,19 +31,25 @@ const SuperAdminDashboard = () => {
         return () => unsubscribe();
     }, [currentUser, navigate]);
 
-    // Estadísticas calculadas
-    const totalEmpresas = empresas.length;
-    const empresasActivas = empresas.filter(e => e.subscriptionStatus === 'active').length;
-    const ingresosEstimados = empresas.reduce((acc, curr) => acc + (curr.planPrice || 0), 0);
-
+    // Financial Metrics
     const empresasFiltradas = empresas.filter(emp =>
         (emp.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
         (emp.id || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const mrrTotal = empresas.reduce((acc, curr) => 
+        curr.subscriptionStatus === 'active' || curr.subscriptionStatus === 'past_due' 
+            ? acc + (curr.planPrice || 0) 
+            : acc
+    , 0);
+
+    const activePaying = empresas.filter(e => e.subscriptionStatus === 'active').length;
+    const inTrial = empresas.filter(e => e.subscriptionStatus === 'trial').length;
+    const pastDue = empresas.filter(e => e.subscriptionStatus === 'past_due').length;
+
     return (
         <div className="bg-[#0a0c14] text-slate-100 min-h-screen flex flex-col font-display max-w-7xl mx-auto shadow-2xl relative overflow-x-hidden md:flex-row">
-            {/* Sidebar (Desktop) / Header (Mobile) */}
+            {/* Sidebar (Desktop) */}
             <aside className="md:w-64 bg-[#161b2a] border-r border-slate-800 flex flex-col md:min-h-screen shrink-0">
                 <div className="p-4 border-b border-slate-800 flex items-center gap-3">
                     <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-2 rounded-xl shadow-lg">
@@ -59,11 +63,11 @@ const SuperAdminDashboard = () => {
                 
                 <nav className="flex-1 p-4 flex flex-col gap-2 overflow-y-auto hidden md:flex">
                     <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 mt-2">Gestión Global</div>
-                    <Link to="/saas-admin" className="flex items-center gap-3 p-3 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 transition-all font-bold text-xs uppercase tracking-wider">
+                    <Link to="/saas-admin" className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-all font-bold text-xs uppercase tracking-wider">
                         <span className="material-symbols-outlined text-[18px]">apartment</span>
                         Empresas
                     </Link>
-                    <Link to="/saas-admin/billing" className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-all font-bold text-xs uppercase tracking-wider">
+                    <Link to="/saas-admin/billing" className="flex items-center gap-3 p-3 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 transition-all font-bold text-xs uppercase tracking-wider">
                         <span className="material-symbols-outlined text-[18px]">receipt_long</span>
                         Facturación
                     </Link>
@@ -80,56 +84,53 @@ const SuperAdminDashboard = () => {
                 <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <div>
                         <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-2">
-                            Dashboard de Inquilinos
+                            Módulo de Facturación
                         </h2>
-                        <p className="text-slate-400 text-sm mt-1">Gestión del modelo Multi-Tenant para talleres y concesionarias.</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <Link 
-                            to="/saas-admin/empresa/nueva"
-                            className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 text-sm uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all active:scale-95 whitespace-nowrap"
-                        >
-                            <span className="material-symbols-outlined text-[18px]">add_business</span>
-                            Afiliar Taller
-                        </Link>
+                        <p className="text-slate-400 text-sm mt-1">Control de cobranzas y MRR (Monthly Recurring Revenue) Global.</p>
                     </div>
                 </header>
 
                 {/* Metrics */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <div className="bg-[#161b2a] border border-slate-800 rounded-2xl p-5 shadow-sm">
-                        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-[14px]">apartment</span> Total Afiliados
+                    <div className="bg-gradient-to-br from-indigo-900/40 to-[#161b2a] border border-indigo-500/30 rounded-2xl p-5 shadow-inner">
+                        <p className="text-indigo-400 text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-[14px]">account_balance</span> Total MRR
                         </p>
-                        <p className="text-3xl font-black text-white">{totalEmpresas}</p>
+                        <p className="text-3xl font-black text-white flex items-baseline gap-1">
+                            <span className="text-lg text-indigo-400/50">$</span>{mrrTotal}
+                        </p>
                     </div>
                     <div className="bg-[#161b2a] border border-slate-800 rounded-2xl p-5 shadow-sm">
                         <p className="text-emerald-500 text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-[14px]">power</span> Activos
+                            <span className="material-symbols-outlined text-[14px]">check_circle</span> Plazas Pagando
                         </p>
-                        <p className="text-3xl font-black text-white">{empresasActivas}</p>
+                        <p className="text-3xl font-black text-white">{activePaying}</p>
                     </div>
-                    <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-2xl p-5 shadow-inner">
-                        <p className="text-indigo-400 text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-[14px]">trending_up</span> MRR Estimado
+                    <div className="bg-[#161b2a] border border-slate-800 rounded-2xl p-5 shadow-sm">
+                        <p className="text-blue-400 text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-[14px]">schedule</span> Plazas en Prueba
                         </p>
-                        <p className="text-3xl font-black text-white flex items-baseline gap-1">
-                            <span className="text-lg text-indigo-400/50">$</span>{ingresosEstimados}
+                        <p className="text-3xl font-black text-white">{inTrial}</p>
+                    </div>
+                    <div className="bg-[#161b2a] border border-slate-800 rounded-2xl p-5 shadow-sm">
+                        <p className="text-red-400 text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-[14px]">warning</span> Plazas Morosas
                         </p>
+                        <p className="text-3xl font-black text-white">{pastDue}</p>
                     </div>
                 </div>
 
                 {/* Table */}
                 <div className="bg-[#161b2a] border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
                     <div className="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
-                        <h3 className="text-sm font-bold uppercase tracking-widest text-slate-200">Plataformas Registradas</h3>
+                        <h3 className="text-sm font-bold uppercase tracking-widest text-slate-200">Estado de Cuenta de Inquilinos</h3>
                         <div className="relative">
                             <input 
                                 type="text" 
-                                placeholder="Buscar empresa..." 
+                                placeholder="Buscar por nombre o ID..." 
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="bg-[#0a0c14] border border-slate-700 rounded-lg px-4 py-2 text-xs text-white placeholder:text-slate-500 w-48 focus:outline-none focus:border-indigo-500 transition-colors pl-9" 
+                                className="bg-[#0a0c14] border border-slate-700 rounded-lg px-4 py-2 text-xs text-white placeholder:text-slate-500 w-56 focus:outline-none focus:border-indigo-500 transition-colors pl-9" 
                             />
                             <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-[18px]">search</span>
                         </div>
@@ -139,10 +140,10 @@ const SuperAdminDashboard = () => {
                         <table className="w-full text-left border-collapse min-w-[800px]">
                             <thead>
                                 <tr className="bg-[#0a0c14]">
-                                    <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-800">Nombre del Taller</th>
-                                    <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-800">Plan Mensual</th>
-                                    <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-800">Estado</th>
-                                    <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-800">Alta</th>
+                                    <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-800">Taller</th>
+                                    <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-800">Email de Contacto</th>
+                                    <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-800">Plan Asignado</th>
+                                    <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-800">Estado de Pago</th>
                                     <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-800 text-right">Acciones</th>
                                 </tr>
                             </thead>
@@ -155,15 +156,15 @@ const SuperAdminDashboard = () => {
                                     </tr>
                                 ) : empresasFiltradas.length === 0 ? (
                                     <tr>
-                                        <td colSpan="5" className="p-8 text-center text-slate-500 font-medium">No hay empresas que coincidan con la búsqueda.</td>
+                                        <td colSpan="5" className="p-8 text-center text-slate-500 font-medium">No se encontraron resultados en facturación.</td>
                                     </tr>
                                 ) : (
                                     empresasFiltradas.map((empresa) => (
                                         <tr key={empresa.id} className="hover:bg-slate-800/50 transition-colors group border-b border-slate-800/50 last:border-0">
                                             <td className="p-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="size-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0">
-                                                        <span className="material-symbols-outlined text-slate-400">storefront</span>
+                                                    <div className="size-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0">
+                                                        <span className="material-symbols-outlined text-slate-400 text-sm">receipt</span>
                                                     </div>
                                                     <div>
                                                         <p className="font-bold text-white text-sm">{empresa.name}</p>
@@ -172,27 +173,34 @@ const SuperAdminDashboard = () => {
                                                 </div>
                                             </td>
                                             <td className="p-4">
-                                                <p className="font-bold text-slate-300 text-sm">${empresa.planPrice || 0} / mes</p>
+                                                <p className="text-xs text-slate-300">{empresa.contactEmail || 'N/A'}</p>
+                                                <p className="text-[10px] text-slate-500">{empresa.contactPhone || 'Sin teléfono'}</p>
+                                            </td>
+                                            <td className="p-4">
+                                                <p className="font-bold text-indigo-400 text-sm">${empresa.planPrice || 0} USD</p>
                                             </td>
                                             <td className="p-4">
                                                 <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest inline-flex items-center gap-1 ${
                                                     empresa.subscriptionStatus === 'active' 
                                                         ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                                                        : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                                                        : empresa.subscriptionStatus === 'past_due'
+                                                        ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                                                        : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
                                                 }`}>
-                                                    <span className={`size-1.5 rounded-full ${empresa.subscriptionStatus === 'active' ? 'bg-emerald-400 animate-pulse' : 'bg-orange-400'}`}></span>
-                                                    {empresa.subscriptionStatus || 'trial'}
+                                                    <span className={`size-1.5 rounded-full ${
+                                                        empresa.subscriptionStatus === 'active' ? 'bg-emerald-400' :
+                                                        empresa.subscriptionStatus === 'past_due' ? 'bg-red-400 animate-pulse' : 'bg-blue-400'
+                                                    }`}></span>
+                                                    {empresa.subscriptionStatus === 'active' ? 'AL DÍA' :
+                                                     empresa.subscriptionStatus === 'past_due' ? 'MOROSO' : 'TRIAL'}
                                                 </span>
-                                            </td>
-                                            <td className="p-4">
-                                                <p className="text-xs text-slate-400 font-medium">{empresa.createdAt?.toDate().toLocaleDateString() || 'N/A'}</p>
                                             </td>
                                             <td className="p-4 text-right">
                                                 <button 
-                                                    onClick={() => setSelectedEmpresa(empresa)}
-                                                    className="text-indigo-400 hover:text-white bg-indigo-500/10 hover:bg-indigo-500/20 p-2 rounded-lg transition-colors inline-flex items-center justify-center"
+                                                    onClick={() => alert('Próximamente: Integración con Stripe/PayPal para emitir Link de Pago / Recibo')}
+                                                    className="text-xs font-bold text-white bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg transition-colors border border-slate-600"
                                                 >
-                                                    <span className="material-symbols-outlined text-[18px]">settings</span>
+                                                    Emitir Recibo
                                                 </button>
                                             </td>
                                         </tr>
@@ -206,11 +214,11 @@ const SuperAdminDashboard = () => {
 
             {/* Mobile Nav */}
             <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#161b2a]/95 backdrop-blur-md border-t border-slate-800 flex justify-around p-3 z-50">
-                <Link to="/saas-admin" className="flex flex-col items-center gap-1 text-indigo-400 w-16">
+                <Link to="/saas-admin" className="flex flex-col items-center gap-1 text-slate-500 hover:text-slate-300 w-16 transition-colors">
                     <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>apartment</span>
                     <span className="text-[9px] font-bold uppercase tracking-widest">Empresas</span>
                 </Link>
-                <Link to="/saas-admin/billing" className="flex flex-col items-center gap-1 text-slate-500 hover:text-slate-300 w-16 transition-colors">
+                <Link to="/saas-admin/billing" className="flex flex-col items-center gap-1 text-indigo-400 w-16">
                     <span className="material-symbols-outlined">receipt_long</span>
                     <span className="text-[9px] font-bold uppercase tracking-widest">Cobros</span>
                 </Link>
@@ -223,15 +231,8 @@ const SuperAdminDashboard = () => {
                     <span className="text-[9px] font-bold uppercase tracking-widest">Salir</span>
                 </Link>
             </nav>
-
-            {selectedEmpresa && (
-                <EditTenantModal 
-                    empresa={selectedEmpresa} 
-                    onClose={() => setSelectedEmpresa(null)} 
-                />
-            )}
         </div>
     );
 };
 
-export default SuperAdminDashboard;
+export default SuperAdminBilling;

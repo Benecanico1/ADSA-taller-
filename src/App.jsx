@@ -33,6 +33,8 @@ import MechanicBudgeting from './pages/MechanicBudgeting'
 import AddMotorcycle from './pages/AddMotorcycle'
 import SuperAdminSetup from './pages/SuperAdminSetup'
 import SuperAdminDashboard from './pages/SuperAdminDashboard'
+import SuperAdminBilling from './pages/SuperAdminBilling'
+import SuperAdminSettings from './pages/SuperAdminSettings'
 import NewTenantForm from './pages/NewTenantForm'
 import FinanceDashboard from './pages/FinanceDashboard'
 import SupplierManagement from './pages/SupplierManagement'
@@ -107,6 +109,8 @@ function App() {
             
             {/* SaaS Admin Routes (Super Admin Only) */}
             <Route path="/saas-admin" element={<AdminRoute><SuperAdminDashboard /></AdminRoute>} />
+            <Route path="/saas-admin/billing" element={<AdminRoute><SuperAdminBilling /></AdminRoute>} />
+            <Route path="/saas-admin/settings" element={<AdminRoute><SuperAdminSettings /></AdminRoute>} />
             <Route path="/saas-admin/empresa/nueva" element={<AdminRoute><NewTenantForm /></AdminRoute>} />
             
             {/* Catch-all redirect to auth page */}

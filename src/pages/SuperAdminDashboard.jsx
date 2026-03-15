@@ -4,6 +4,7 @@ import { useAuth } from '../lib/AuthContext';
 import { db } from '../lib/firebase';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import EditTenantModal from '../components/EditTenantModal';
+import ManageBranchesModal from '../components/ManageBranchesModal';
 
 const SuperAdminDashboard = () => {
     const { currentUser } = useAuth();
@@ -12,6 +13,7 @@ const SuperAdminDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedEmpresa, setSelectedEmpresa] = useState(null);
+    const [selectedEmpresaBranches, setSelectedEmpresaBranches] = useState(null);
 
     useEffect(() => {
         // Redirigir si no es super admin
@@ -187,13 +189,23 @@ const SuperAdminDashboard = () => {
                                             <td className="p-4">
                                                 <p className="text-xs text-slate-400 font-medium">{empresa.createdAt?.toDate().toLocaleDateString() || 'N/A'}</p>
                                             </td>
-                                            <td className="p-4 text-right">
-                                                <button 
-                                                    onClick={() => setSelectedEmpresa(empresa)}
-                                                    className="text-indigo-400 hover:text-white bg-indigo-500/10 hover:bg-indigo-500/20 p-2 rounded-lg transition-colors inline-flex items-center justify-center"
-                                                >
-                                                    <span className="material-symbols-outlined text-[18px]">settings</span>
-                                                </button>
+                                            <td className="p-4">
+                                                <div className="flex justify-end items-center gap-2">
+                                                    <button 
+                                                        onClick={() => setSelectedEmpresaBranches(empresa)}
+                                                        title="Gestionar Sucursales"
+                                                        className="text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 p-2 rounded-lg transition-colors inline-flex items-center justify-center"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[18px]">store</span>
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => setSelectedEmpresa(empresa)}
+                                                        title="Configuración de Plan"
+                                                        className="text-indigo-400 hover:text-white bg-indigo-500/10 hover:bg-indigo-500/20 p-2 rounded-lg transition-colors inline-flex items-center justify-center"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[18px]">settings</span>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -228,6 +240,13 @@ const SuperAdminDashboard = () => {
                 <EditTenantModal 
                     empresa={selectedEmpresa} 
                     onClose={() => setSelectedEmpresa(null)} 
+                />
+            )}
+
+            {selectedEmpresaBranches && (
+                <ManageBranchesModal 
+                    empresa={selectedEmpresaBranches} 
+                    onClose={() => setSelectedEmpresaBranches(null)} 
                 />
             )}
         </div>

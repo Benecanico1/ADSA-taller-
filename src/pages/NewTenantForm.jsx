@@ -33,18 +33,29 @@ const NewTenantForm = () => {
         contactPhone: ''
     });
 
-    const [sucursalDatos, setSucursalDatos] = useState({
-        name: 'Matriz Principal',
-        address: '',
-        city: ''
-    });
+    const [sucursales, setSucursales] = useState([
+        { name: 'Matriz Principal', address: '', city: '' }
+    ]);
 
     const handleEmpresaChange = (e) => {
         setEmpresaDatos({ ...empresaDatos, [e.target.name]: e.target.value });
     };
 
-    const handleSucursalChange = (e) => {
-        setSucursalDatos({ ...sucursalDatos, [e.target.name]: e.target.value });
+    const handleSucursalChange = (index, e) => {
+        const updated = [...sucursales];
+        updated[index][e.target.name] = e.target.value;
+        setSucursales(updated);
+    };
+
+    const addSucursal = () => {
+        setSucursales([...sucursales, { name: '', address: '', city: '' }]);
+    };
+
+    const removeSucursal = (index) => {
+        if (sucursales.length > 1) {
+            const updated = sucursales.filter((_, i) => i !== index);
+            setSucursales(updated);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -70,13 +81,18 @@ const NewTenantForm = () => {
 
             const empresaId = empresaRef.id;
 
-            // 2. Create Initial Sucursal for this Empresa
-            const sucursalRef = await addDoc(collection(db, 'Sucursales'), {
-                ...sucursalDatos,
-                empresaId: empresaId,
-                createdAt: serverTimestamp(),
-                status: 'active'
+            // 2. Create Initial Sucursales for this Empresa
+            const promises = sucursales.map(sucursal => {
+                return addDoc(collection(db, 'Sucursales'), {
+                    ...sucursal,
+                    empresaId: empresaId,
+                    createdAt: serverTimestamp(),
+                    status: 'active'
+                });
             });
+
+            const sucursalesRefs = await Promise.all(promises);
+            const firstSucursalId = sucursalesRefs[0].id;
 
             // Navigation success
             let successMessage = `Taller registrado exitosamente. ID Empresa: ${empresaId}.`;
@@ -95,7 +111,7 @@ const NewTenantForm = () => {
                         displayName: adminDatos.displayName || 'Administrador',
                         role: 'empresa_admin',
                         empresaId: empresaId,
-                        sucursalId: sucursalRef.id,
+                        sucursalId: firstSucursalId,
                         status: 'active',
                         createdAt: serverTimestamp()
                     });
@@ -190,7 +206,7 @@ const NewTenantForm = () => {
                                 />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-bold uppercase tracking-widest text-indigo-400">Plan Mensual (USD) *</label>
+                                <label className="text-xs font-bold uppercase tracking-widest text-indigo-400">Precio Paquete Mensual (USD) *</label>
                                 <input 
                                     type="number" 
                                     name="planPrice"
@@ -227,49 +243,76 @@ const NewTenantForm = () => {
                         </div>
                     </div>
 
-                    {/* Sección Sucursal Matriz */}
-                    <div className="bg-[#161b2a] border border-slate-800 rounded-2xl p-6 shadow-sm">
-                        <h2 className="text-lg font-bold text-white flex items-center gap-2 mb-6">
-                            <span className="material-symbols-outlined text-indigo-400">store</span>
-                            Sucursal Principal
-                        </h2>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1 md:col-span-2">
-                                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Nombre de la Sucursal *</label>
-                                <input 
-                                    type="text" 
-                                    name="name"
-                                    required
-                                    value={sucursalDatos.name}
-                                    onChange={handleSucursalChange}
-                                    className="w-full bg-[#0a0c14] border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-indigo-500 focus:outline-none transition-colors"
-                                />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Ciudad/Región *</label>
-                                <input 
-                                    type="text" 
-                                    name="city"
-                                    required
-                                    value={sucursalDatos.city}
-                                    onChange={handleSucursalChange}
-                                    className="w-full bg-[#0a0c14] border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-indigo-500 focus:outline-none transition-colors"
-                                    placeholder="Ciudad"
-                                />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Dirección</label>
-                                <input 
-                                    type="text" 
-                                    name="address"
-                                    value={sucursalDatos.address}
-                                    onChange={handleSucursalChange}
-                                    className="w-full bg-[#0a0c14] border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-indigo-500 focus:outline-none transition-colors"
-                                    placeholder="Av. Principal 123"
-                                />
-                            </div>
+                    {/* Sección Sucursales */}
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                                <span className="material-symbols-outlined text-indigo-400">store</span>
+                                Sucursales / Sedes
+                            </h2>
+                            <button 
+                                type="button" 
+                                onClick={addSucursal}
+                                className="bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-colors"
+                            >
+                                <span className="material-symbols-outlined text-[16px]">add</span>
+                                Añadir Sucursal
+                            </button>
                         </div>
+                        
+                        {sucursales.map((sucursal, index) => (
+                            <div key={index} className="bg-[#161b2a] border border-slate-800 rounded-2xl p-6 shadow-sm relative">
+                                {sucursales.length > 1 && (
+                                    <button 
+                                        type="button" 
+                                        onClick={() => removeSucursal(index)}
+                                        className="absolute top-4 right-4 text-red-400 hover:text-red-300 bg-red-400/10 hover:bg-red-400/20 p-2 rounded-xl transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                                    </button>
+                                )}
+                                <h3 className="text-sm font-bold text-slate-300 mb-4 border-b border-slate-800 pb-2">
+                                    Sucursal {index + 1} {index === 0 ? '(Matriz)' : ''}
+                                </h3>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1 md:col-span-2">
+                                        <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Nombre de la Sucursal *</label>
+                                        <input 
+                                            type="text" 
+                                            name="name"
+                                            required
+                                            value={sucursal.name}
+                                            onChange={(e) => handleSucursalChange(index, e)}
+                                            className="w-full bg-[#0a0c14] border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-indigo-500 focus:outline-none transition-colors"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Ciudad/Región *</label>
+                                        <input 
+                                            type="text" 
+                                            name="city"
+                                            required
+                                            value={sucursal.city}
+                                            onChange={(e) => handleSucursalChange(index, e)}
+                                            className="w-full bg-[#0a0c14] border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-indigo-500 focus:outline-none transition-colors"
+                                            placeholder="Ciudad"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Dirección</label>
+                                        <input 
+                                            type="text" 
+                                            name="address"
+                                            value={sucursal.address}
+                                            onChange={(e) => handleSucursalChange(index, e)}
+                                            className="w-full bg-[#0a0c14] border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-indigo-500 focus:outline-none transition-colors"
+                                            placeholder="Av. Principal 123"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
 
                     {/* Sección Creación Automática de Administrador */}

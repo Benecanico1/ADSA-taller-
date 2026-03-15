@@ -26,8 +26,7 @@ import { GoogleAuthProvider } from "firebase/auth";
 export const googleProvider = new GoogleAuthProvider();
 
 // Initialize Cloud Firestore and get a reference to the service
-// Attempting to explicitly target the (default) database to bypass initialization errors
-export const db = getFirestore(app, '(default)');
+export const db = getFirestore(app);
 
 // Initialize Cloud Storage and get a reference to the service
 export const storage = getStorage(app);

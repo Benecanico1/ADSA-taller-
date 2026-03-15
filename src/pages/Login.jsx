@@ -157,8 +157,8 @@ const Login = () => {
                 <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/30 mb-6 shadow-[0_0_30px_rgba(255,40,0,0.15)] backdrop-blur-md">
                     <span className="material-symbols-outlined text-primary text-5xl">settings_input_component</span>
                 </div>
-                <h1 className="font-technical text-2xl font-bold tracking-widest text-slate-100 uppercase text-center">{appConfig.companyName}</h1>
-                <p className="text-primary text-[10px] font-technical tracking-[0.3em] uppercase mt-2 text-center">Plataforma de Clientes</p>
+                <h1 className="font-technical text-2xl font-bold tracking-widest text-white uppercase text-center">{appConfig.companyName}</h1>
+                <p className="text-white/80 text-[10px] font-technical tracking-[0.3em] uppercase mt-2 text-center">Plataforma de Clientes</p>
                 
                 {/* Desktop Links */}
                 <div className="hidden lg:flex flex-col items-center mt-12 gap-4">
@@ -191,13 +191,13 @@ const Login = () => {
                     <div className="space-y-4">
                         {/* Input: Correo */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-[9px] font-technical uppercase tracking-widest text-primary/80 ml-1">Correo Electrónico</label>
+                            <label className="text-[10px] font-technical uppercase tracking-widest text-white ml-1 font-bold">Correo Electrónico</label>
                             <div className="relative group rounded-xl border border-slate-700/50 bg-[#0b0f19] transition-all focus-within:border-primary/50 focus-within:shadow-[0_0_15px_rgba(255,40,0,0.1)]">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <span className="material-symbols-outlined text-slate-500 text-lg group-focus-within:text-primary transition-colors">mail</span>
                                 </div>
                                 <input
-                                    className="block w-full pl-11 pr-4 py-2.5 bg-transparent border-none focus:ring-0 text-slate-100 placeholder:text-slate-600 font-medium text-sm outline-none [&:-webkit-autofill]:shadow-[0_0_0_100px_#0b0f19_inset] [&:-webkit-autofill]:text-fill-slate-100"
+                                    className="block w-full pl-11 pr-4 py-2.5 bg-transparent border-none focus:ring-0 text-white placeholder:text-slate-400 font-medium text-sm outline-none [&:-webkit-autofill]:shadow-[0_0_0_100px_#0b0f19_inset] [&:-webkit-autofill]:text-fill-white"
                                     placeholder="usuario@empresa.com"
                                     type="email"
                                     value={email}
@@ -208,13 +208,13 @@ const Login = () => {
 
                         {/* Input: Contraseña */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-[9px] font-technical uppercase tracking-widest text-primary/80 ml-1">Contraseña</label>
+                            <label className="text-[10px] font-technical uppercase tracking-widest text-white ml-1 font-bold">Contraseña</label>
                             <div className="relative group rounded-xl border border-slate-700/50 bg-[#0b0f19] transition-all focus-within:border-primary/50 focus-within:shadow-[0_0_15px_rgba(255,40,0,0.1)] flex items-center">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <span className="material-symbols-outlined text-slate-500 text-lg group-focus-within:text-primary transition-colors">vpn_key</span>
                                 </div>
                                 <input
-                                    className="block w-full pl-11 pr-11 py-2.5 bg-transparent border-none focus:ring-0 text-slate-100 placeholder:text-slate-600 font-medium text-sm tracking-widest outline-none [&:-webkit-autofill]:shadow-[0_0_0_100px_#0b0f19_inset] [&:-webkit-autofill]:text-fill-slate-100"
+                                    className="block w-full pl-11 pr-11 py-2.5 bg-transparent border-none focus:ring-0 text-white placeholder:text-slate-400 font-medium text-sm tracking-widest outline-none [&:-webkit-autofill]:shadow-[0_0_0_100px_#0b0f19_inset] [&:-webkit-autofill]:text-fill-white"
                                     placeholder="••••••••"
                                     type={showPassword ? "text" : "password"}
                                     value={password}
@@ -236,8 +236,8 @@ const Login = () => {
                         {!isRegistering && (
                             <div className="flex items-center justify-between px-1 py-1">
                                 <div className="flex flex-col">
-                                    <span className="text-sm font-medium text-slate-200">Autenticación 2FA</span>
-                                    <span className="text-[10px] text-slate-500 uppercase font-technical">Seguridad reforzada</span>
+                                    <span className="text-sm font-bold text-white">Autenticación 2FA</span>
+                                    <span className="text-[10px] text-white/70 uppercase font-technical">Seguridad reforzada</span>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input defaultChecked className="sr-only peer" type="checkbox" />
@@ -270,7 +270,7 @@ const Login = () => {
                                     setIsRegistering(!isRegistering);
                                     setError('');
                                 }}
-                                className="text-primary text-xs font-technical font-bold uppercase tracking-[0.2em] hover:text-primary/80 transition-colors"
+                                className="text-white text-xs font-technical font-bold uppercase tracking-[0.2em] hover:text-white/80 transition-colors"
                             >
                                 {isRegistering ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
                             </button>
@@ -279,7 +279,7 @@ const Login = () => {
                         {/* Options */}
                         {!isRegistering && (
                             <div className="flex flex-col items-center gap-4 mt-4">
-                                <Link to="/recovery" className="text-slate-400 text-sm font-technical uppercase tracking-wider hover:text-primary transition-colors">
+                                <Link to="/recovery" className="text-white/90 text-[11px] font-technical font-bold uppercase tracking-wider hover:text-white transition-colors">
                                     ¿Olvidaste tu contraseña?
                                 </Link>
 

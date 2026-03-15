@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { db } from '../lib/firebase';
-import { collection, onSnapshot, doc, setDoc, query, limit } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, query, limit, where } from 'firebase/firestore';
 import { useAuth } from '../lib/AuthContext';
 
 const InventoryDetails = () => {
@@ -11,14 +11,18 @@ const InventoryDetails = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (!currentUser?.sucursalId) return;
+
         // We only have a details page, so we just fetch the first item in the Inventory collection for demonstration.
-        const q = query(collection(db, 'Inventory'), limit(1));
+        const q = query(collection(db, 'Inventory'), where('sucursalId', '==', currentUser.sucursalId), limit(1));
 
         const unsubscribe = onSnapshot(q, async (snapshot) => {
             if (snapshot.empty) {
                 console.log("No inventory items found. Creating a dummy item...");
                 const dummyRef = doc(collection(db, 'Inventory'));
                 const dummyData = {
+                    empresaId: currentUser.empresaId,
+                    sucursalId: currentUser.sucursalId,
                     name: "Pastillas de Freno Brembo Sinterizadas",
                     sku: "BRM-59021-HP",
                     category: "Frenado",

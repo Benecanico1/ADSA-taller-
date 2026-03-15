@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { db } from '../lib/firebase';
-import { collection, onSnapshot, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, getDoc, updateDoc, query, where } from 'firebase/firestore';
 import { useAuth } from '../lib/AuthContext';
 
 const WorkshopKanbanBoard = () => {
@@ -10,8 +10,11 @@ const WorkshopKanbanBoard = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Fetch all appointments in real-time
-        const unsubscribe = onSnapshot(collection(db, 'Appointments'), async (snapshot) => {
+        if (!currentUser?.sucursalId) return;
+
+        // Fetch all appointments in real-time scoped to this branch
+        const q = query(collection(db, 'Appointments'), where('sucursalId', '==', currentUser.sucursalId));
+        const unsubscribe = onSnapshot(q, async (snapshot) => {
             const apps = [];
             for (const document of snapshot.docs) {
                 const data = document.data();

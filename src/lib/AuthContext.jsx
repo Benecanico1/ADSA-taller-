@@ -22,32 +22,36 @@ export const AuthProvider = ({ children }) => {
                     const userDocRef = doc(db, 'Users', user.uid);
                     const userDoc = await getDoc(userDocRef);
 
+                    let userData = null;
+
                     if (!userDoc.exists()) {
                         console.log("AuthContext: User document not found. Assumed new user. Creating...");
-                        // Create basic user profile on first login
-                        await setDoc(userDocRef, {
+                        // Create basic SaaS user profile on first login (pending assignment)
+                        userData = {
                             email: user.email,
                             createdAt: new Date(),
-                            role: 'client', // Default role
+                            role: 'unassigned', // User has NO permissions until an admin assigns a role/empresa
+                            empresaId: null, // No company assigned yet
+                            sucursalId: null, // No branch assigned yet
                             profileSetupComplete: false
-                        });
-                        console.log("AuthContext: Document created successfully.");
+                        };
+                        await setDoc(userDocRef, userData);
+                        console.log("AuthContext: Profile created successfully.");
+                    } else {
+                        userData = userDoc.data();
                     }
 
-                    // Add Firestore data to the user object
-                    let userData = { role: 'client' }; // Default fallback
-                    try {
-                        if (userDoc && userDoc.exists()) {
-                            userData = userDoc.data();
-                        }
-                    } catch (e) { console.warn("Could not read user data"); }
+                    // For extremely legacy users who might not have these fields
+                    if (userData && userData.role !== 'super_admin' && userData.role !== 'unassigned' && !userData.empresaId) {
+                        console.warn("Legacy user detected. Needs forced migration to an empresaId.");
+                    }
 
                     setCurrentUser({ ...user, ...userData });
-                    console.log("AuthContext: Current user state established.");
+                    console.log("AuthContext: Current user state established:", userData.role);
                 } catch (error) {
                     console.error("AuthContext Critical Error during user initialization:", error);
-                    // Fallback to basic client profile so the app doesn't white-screen
-                    setCurrentUser({ ...user, role: 'client' });
+                    // Fallback to absolute minimum safety profile so the app handles errors safely
+                    setCurrentUser({ ...user, role: 'unassigned' });
                 }
             } else {
                 setCurrentUser(null);

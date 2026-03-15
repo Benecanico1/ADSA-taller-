@@ -11,20 +11,20 @@ const MechanicCommissions = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!currentUser) return;
+        if (!currentUser?.sucursalId) return;
 
-        // Fetch completed appointments for commissions
-        const queryConstraints = [where('status', '==', 'completed')];
-        if (currentUser.role !== 'admin') {
-            queryConstraints.push(where('mechanicId', '==', currentUser.uid));
-        }
-
-        const q = query(collection(db, 'Appointments'), ...queryConstraints);
+        // Fetch completed appointments scoped to tenant
+        const q = query(collection(db, 'Appointments'), where('sucursalId', '==', currentUser.sucursalId));
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const apps = [];
             snapshot.forEach((doc) => {
-                apps.push({ id: doc.id, ...doc.data() });
+                const data = doc.data();
+                if (data.status === 'completed') {
+                    if (currentUser.role === 'admin' || currentUser.role === 'super_admin' || data.mechanicId === currentUser.uid) {
+                        apps.push({ id: doc.id, ...data });
+                    }
+                }
             });
             // Sort client-side by descending date roughly
             apps.sort((a, b) => new Date(b.date) - new Date(a.date));

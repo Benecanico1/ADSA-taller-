@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { db } from '../lib/firebase';
 import { collection, query, where, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { useAuth } from '../lib/AuthContext';
 
 const ActiveReception = () => {
     const navigate = useNavigate();
+    const { currentUser } = useAuth();
 
     // Data State
     const [appointment, setAppointment] = useState(null);
@@ -30,9 +32,17 @@ const ActiveReception = () => {
 
     useEffect(() => {
         const fetchPendingAppointment = async () => {
+            if (!currentUser?.sucursalId) {
+                setLoading(false);
+                return;
+            }
             try {
                 // Fetch the first pending appointment for demo purposes
-                const q = query(collection(db, "Appointments"), where("status", "==", "pending"));
+                const q = query(
+                    collection(db, "Appointments"),
+                    where("sucursalId", "==", currentUser.sucursalId),
+                    where("status", "==", "pending")
+                );
                 const querySnapshot = await getDocs(q);
 
                 if (!querySnapshot.empty) {

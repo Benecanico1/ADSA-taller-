@@ -66,6 +66,8 @@ const AddMotorcycle = () => {
                 ...formData,
                 imageUrl,
                 ownerId: currentUser.uid,
+                empresaId: currentUser.empresaId,
+                sucursalId: currentUser.sucursalId,
                 createdAt: new Date(),
                 status: 'active'
             });

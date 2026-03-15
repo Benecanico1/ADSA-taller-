@@ -1,40 +1,53 @@
 import React from 'react';
+import { db } from '../../lib/firebase';
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 
-const NotificationPanel = ({ isOpen, onClose }) => {
+const NotificationPanel = ({ isOpen, onClose, notifications = [], currentUser }) => {
     if (!isOpen) return null;
 
-    const notifications = [
-        {
-            id: 1,
-            title: "Revisión Anual Cercana",
-            message: "A tu Kawasaki Z900 le faltan 10 días para su servicio.",
-            time: "Hace 2 horas",
-            isNew: true,
-            icon: "warning",
-            color: "text-amber-500",
-            bg: "bg-amber-500/10"
-        },
-        {
-            id: 2,
-            title: "Cita Confirmada",
-            message: "Mantenimiento General agendado para el 15 de Octubre.",
-            time: "Hace 1 día",
-            isNew: false,
-            icon: "event_available",
-            color: "text-primary",
-            bg: "bg-primary/10"
-        },
-        {
-            id: 3,
-            title: "¡Bienvenido a Dynotech!",
-            message: "Gracias por confiar el cuidado de tus motocicletas en nosotros.",
-            time: "Hace 1 semana",
-            isNew: false,
-            icon: "celebration",
-            color: "text-emerald-500",
-            bg: "bg-emerald-500/10"
+    const handleMarkAsRead = async (notificationId) => {
+        if (!currentUser) return;
+        try {
+            const notifRef = doc(db, 'Notifications', notificationId);
+            await updateDoc(notifRef, {
+                readBy: arrayUnion(currentUser.uid)
+            });
+        } catch (error) {
+            console.error('Error marking as read:', error);
         }
-    ];
+    };
+
+    const handleMarkAllAsRead = async () => {
+        if (!currentUser || !notifications.length) return;
+        try {
+            // Find logic for unread notifications
+            const unread = notifications.filter(n => !(n.readBy || []).includes(currentUser.uid));
+            await Promise.all(unread.map(n => {
+                const notifRef = doc(db, 'Notifications', n.id);
+                return updateDoc(notifRef, {
+                    readBy: arrayUnion(currentUser.uid)
+                });
+            }));
+        } catch (error) {
+            console.error('Error marking all as read:', error);
+        }
+    };
+
+    const formatTimeAgo = (timestamp) => {
+        if (!timestamp) return 'Reciente';
+        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+
+        if (diffMins < 1) return 'Hace un momento';
+        if (diffMins < 60) return `Hace ${diffMins} minutos`;
+        const diffHours = Math.floor(diffMins / 60);
+        if (diffHours < 24) return `Hace ${diffHours} horas`;
+        const diffDays = Math.floor(diffHours / 24);
+        if (diffDays === 1) return 'Hace 1 día';
+        return `Hace ${diffDays} días`;
+    };
 
     return (
         <>
@@ -65,34 +78,39 @@ const NotificationPanel = ({ isOpen, onClose }) => {
                 <div className="flex-1 overflow-y-auto w-full">
                     {notifications.length > 0 ? (
                         <div className="flex flex-col">
-                            {notifications.map(notification => (
-                                <div
-                                    key={notification.id}
-                                    className={`relative p-4 border-b border-slate-800/50 hover:bg-[#161b2a]/50 transition-colors cursor-pointer group`}
-                                >
-                                    {notification.isNew && (
-                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r"></div>
-                                    )}
-                                    <div className="flex gap-4">
-                                        <div className={`shrink-0 size-10 rounded-xl ${notification.bg} flex items-center justify-center shadow-inner`}>
-                                            <span className={`material-symbols-outlined ${notification.color}`}>{notification.icon}</span>
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex justify-between items-start mb-1">
-                                                <h4 className={`text-sm font-bold truncate pr-3 ${notification.isNew ? 'text-white' : 'text-slate-200'}`}>
-                                                    {notification.title}
-                                                </h4>
+                            {notifications.map(notification => {
+                                const isUnread = !(notification.readBy || []).includes(currentUser?.uid);
+
+                                return (
+                                    <div
+                                        key={notification.id}
+                                        onClick={() => isUnread && handleMarkAsRead(notification.id)}
+                                        className={`relative p-4 border-b border-slate-800/50 hover:bg-[#161b2a]/50 transition-colors cursor-pointer group`}
+                                    >
+                                        {isUnread && (
+                                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r"></div>
+                                        )}
+                                        <div className="flex gap-4">
+                                            <div className={`shrink-0 size-10 rounded-xl ${notification.bg || 'bg-slate-800'} flex items-center justify-center shadow-inner`}>
+                                                <span className={`material-symbols-outlined ${notification.color || 'text-slate-400'}`}>{notification.icon || 'notifications'}</span>
                                             </div>
-                                            <p className="text-xs text-slate-400 leading-snug line-clamp-2">
-                                                {notification.message}
-                                            </p>
-                                            <p className="text-[10px] text-slate-500 font-bold tracking-widest uppercase mt-2">
-                                                {notification.time}
-                                            </p>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <h4 className={`text-sm font-bold pr-3 ${isUnread ? 'text-white' : 'text-slate-400'}`}>
+                                                        {notification.title}
+                                                    </h4>
+                                                </div>
+                                                <p className={`text-xs leading-snug ${isUnread ? 'text-slate-300' : 'text-slate-500'}`}>
+                                                    {notification.message}
+                                                </p>
+                                                <p className="text-[10px] text-slate-500 font-bold tracking-widest uppercase mt-2">
+                                                    {formatTimeAgo(notification.createdAt)}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-center p-6 text-slate-400">
@@ -104,7 +122,10 @@ const NotificationPanel = ({ isOpen, onClose }) => {
 
                 {/* Footer Actions */}
                 <div className="p-4 border-t border-slate-800 bg-[#0a0c14]">
-                    <button className="w-full py-2.5 rounded-xl text-primary text-xs font-black tracking-widest uppercase hover:bg-primary/10 transition-colors border border-primary/20">
+                    <button
+                        onClick={handleMarkAllAsRead}
+                        className="w-full py-2.5 rounded-xl text-primary text-xs font-black tracking-widest uppercase hover:bg-primary/10 transition-colors border border-primary/20"
+                    >
                         Marcar todas como leídas
                     </button>
                 </div>

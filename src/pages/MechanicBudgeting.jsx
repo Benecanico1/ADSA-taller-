@@ -55,7 +55,9 @@ const MechanicBudgeting = () => {
 
     // Fetch Inventory
     useEffect(() => {
-        const q = query(collection(db, 'Inventory'));
+        if (!currentUser?.sucursalId) return;
+
+        const q = query(collection(db, 'Inventory'), where('sucursalId', '==', currentUser.sucursalId));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const items = [];
             snapshot.forEach((doc) => {

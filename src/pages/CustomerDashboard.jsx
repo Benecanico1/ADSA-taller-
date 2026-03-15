@@ -1,18 +1,77 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import BottomNav from '../components/ui/BottomNav';
 import { useAuth } from '../lib/AuthContext';
 import { auth, db } from '../lib/firebase';
 import { signOut } from 'firebase/auth';
 import DevRoleToggle from '../components/DevRoleToggle';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, onSnapshot, doc, updateDoc, addDoc } from 'firebase/firestore';
 import { useNotifications } from '../lib/NotificationContext';
+import LeaveFeedbackModal from '../components/ui/LeaveFeedbackModal';
+import LiveTelemetryCard from '../components/LiveTelemetryCard';
+import EditMotorcycleModal from '../components/EditMotorcycleModal';
+import DigitalSignatureModal from '../components/DigitalSignatureModal';
+import ClientBudgetModal from '../components/ClientBudgetModal';
+import ClientReadyModal from '../components/ClientReadyModal';
+import VirtualMechanicChat from '../components/VirtualMechanicChat';
+import { appConfig } from '../config';
 
 const CustomerDashboard = () => {
     const navigate = useNavigate();
     const { currentUser } = useAuth();
     const { togglePanel } = useNotifications();
     const [vehicles, setVehicles] = useState([]);
+    const [activeAppointment, setActiveAppointment] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+    const [selectedMotorcycle, setSelectedMotorcycle] = useState(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [storeOrders, setStoreOrders] = useState([]);
+
+    const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
+    const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+
+    const handleMarkArrivalClick = () => {
+        setIsSignatureModalOpen(true);
+    };
+
+    const handleConfirmArrival = async (signatureData) => {
+        if (!activeAppointment || !currentUser) return;
+
+        try {
+            // Update appointment status to pending (workshop reception) and add signature
+            const appRef = doc(db, 'Appointments', activeAppointment.id);
+            await updateDoc(appRef, {
+                status: 'pending',
+                digitalSignature: signatureData
+            });
+
+            // Notify admins and mechanics
+            const notificationData = {
+                title: "Vehículo en Taller",
+                message: `El cliente ${currentUser.displayName || currentUser.email || 'Web'} ha llegado con su ${activeAppointment.vehicle?.brand || 'Moto'} ${activeAppointment.vehicle?.model || ''}.`,
+                createdAt: new Date(),
+                readBy: [],
+                icon: "directions_car",
+                color: "text-emerald-500",
+                bg: "bg-emerald-500/10"
+            };
+
+            await addDoc(collection(db, 'Notifications'), {
+                ...notificationData,
+                targetRole: 'admin'
+            });
+
+            await addDoc(collection(db, 'Notifications'), {
+                ...notificationData,
+                targetRole: 'mechanic'
+            });
+
+            setIsSignatureModalOpen(false);
+        } catch (error) {
+            console.error("Error marking arrival:", error);
+        }
+    };
 
     const handleSignOut = async () => {
         try {
@@ -40,6 +99,19 @@ const CustomerDashboard = () => {
                     bikes.push({ id: doc.id, ...doc.data() });
                 });
                 setVehicles(bikes);
+
+                // Fetch user's marketplace orders
+                const ordersQ = query(collection(db, "MarketplaceOrders"), where("userId", "==", currentUser.uid));
+                const ordersSnapshot = await getDocs(ordersQ);
+                const ordersData = [];
+                ordersSnapshot.forEach((doc) => {
+                    ordersData.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Sort descending manually since we didn't add a composite index
+                ordersData.sort((a,b) => b.createdAt?.seconds - a.createdAt?.seconds);
+                
+                setStoreOrders(ordersData);
             } catch (error) {
                 console.error("Error fetching vehicles:", error);
             } finally {
@@ -50,8 +122,50 @@ const CustomerDashboard = () => {
         fetchUserData();
     }, [currentUser]);
 
+    useEffect(() => {
+        if (!currentUser) return;
+        const q = query(
+            collection(db, "Appointments"),
+            where("userId", "==", currentUser.uid)
+        );
+
+        const unsubscribe = onSnapshot(q, async (snapshot) => {
+            const validStatuses = ["scheduled", "pending", "diagnosing", "working", "quality", "ready", "delivery_pending"];
+            
+            // Filter locally and sort by date and time
+            const validDocs = snapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() }))
+                .filter(data => validStatuses.includes(data.status))
+                .sort((a, b) => {
+                    const dateA = new Date(`${a.date}T${a.time?.replace(/ (AM|PM)/, '') || '00:00'}:00`);
+                    const dateB = new Date(`${b.date}T${b.time?.replace(/ (AM|PM)/, '') || '00:00'}:00`);
+                    return dateA - dateB;
+                });
+
+            if (validDocs.length > 0) {
+                // Get the most urgently upcoming active appointment
+                const appData = validDocs[0];
+
+                let vehicleData = {};
+                if (appData.vehicleId) {
+                    const vQ = query(collection(db, "Motorcycles"), where("__name__", "==", appData.vehicleId));
+                    const vSnap = await getDocs(vQ);
+                    if (!vSnap.empty) {
+                        vehicleData = vSnap.docs[0].data();
+                    }
+                }
+
+                setActiveAppointment({ ...appData, vehicle: vehicleData });
+            } else {
+                setActiveAppointment(null);
+            }
+        });
+
+        return () => unsubscribe();
+    }, [currentUser]);
+
     return (
-        <div className="bg-[#0a0c14] text-slate-100 min-h-screen flex flex-col font-display max-w-2xl mx-auto shadow-2xl relative overflow-hidden">
+        <div className="bg-[#0a0c14] text-slate-100 h-[100dvh] flex flex-col font-display w-full mx-auto relative overflow-hidden">
             {/* Carbon Pattern Background */}
             <div
                 className="absolute inset-0 z-0 pointer-events-none opacity-40"
@@ -68,234 +182,326 @@ const CustomerDashboard = () => {
             ></div>
 
             {/* Header */}
-            <header className="sticky top-0 z-50 bg-[#161b2a]/80 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between shadow-sm">
-                <div className="flex items-center gap-3">
-                    <div className="bg-gradient-to-br from-primary to-blue-600 p-1.5 rounded-xl shadow-[0_0_15px_rgba(37,123,244,0.3)]">
-                        <span className="material-symbols-outlined text-white text-lg drop-shadow-sm">precision_manufacturing</span>
+            <header className="sticky top-0 z-50 bg-[#161b2a]/80 backdrop-blur-md border-b border-slate-800 p-4 pb-3 flex items-center justify-center shadow-sm">
+                <div className="flex w-full max-w-[1600px] justify-between items-center px-2">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-gradient-to-br from-primary to-red-600 p-1.5 rounded-xl shadow-[0_0_15px_rgba(255,40,0,0.3)]">
+                            <span className="material-symbols-outlined text-white text-lg drop-shadow-sm">precision_manufacturing</span>
+                        </div>
+                        <div>
+                            <h1 className="text-sm font-black leading-none text-white tracking-wide">{appConfig.companyName}</h1>
+                            <p className="text-[9px] text-primary uppercase tracking-widest font-bold mt-0.5">Portal de Clientes</p>
+                        </div>
                     </div>
-                    <div>
-                        <h1 className="text-sm font-black leading-none text-white tracking-wide">Dynotech</h1>
-                        <p className="text-[9px] text-primary uppercase tracking-widest font-bold mt-0.5">Power Garage</p>
+                    <div className="flex items-center gap-3">
+                        <DevRoleToggle />
+                        <button title="Notificaciones" onClick={handleNotificationsClick} className="relative flex items-center justify-center rounded-full size-10 bg-[#161b2a] border border-slate-700/80 hover:border-primary/50 text-slate-400 hover:text-primary transition-colors">
+                            <span className="material-symbols-outlined text-xl">notifications</span>
+                            {/* Assuming there's an unread count you could wire up here */}
+                        </button>
+                        <button title="Cerrar sesión" onClick={handleSignOut} className="relative flex items-center justify-center rounded-full size-10 bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 text-red-500 transition-colors">
+                            <span className="material-symbols-outlined text-xl">logout</span>
+                        </button>
                     </div>
-                </div>
-                <div className="flex items-center gap-3">
-                    <DevRoleToggle />
-                    <button onClick={handleNotificationsClick} className="relative flex items-center justify-center rounded-full size-10 bg-[#161b2a] border border-slate-700/80 hover:border-primary/50 text-slate-400 hover:text-primary transition-colors">
-                        <span className="material-symbols-outlined text-xl">notifications</span>
-                        {/* Indicador de notificación (Opcional, desactivado por ahora)
-                        <span className="absolute top-2 right-2.5 size-2 bg-red-500 rounded-full border border-[#161b2a]"></span>
-                        */}
-                    </button>
-                    <button onClick={handleSignOut} className="relative flex items-center justify-center rounded-full size-10 bg-[#161b2a] border border-slate-700/80 hover:border-red-500/50 hover:text-red-500 transition-colors">
-                        <span className="material-symbols-outlined text-slate-100 hover:text-red-500 text-xl transition-colors">logout</span>
-                    </button>
                 </div>
             </header>
 
-            <main className="relative z-10 flex-1 pb-28">
-                {/* Featured Active Asset */}
-                <div className="p-4 px-4">
-                    <div onClick={() => navigate('/warranties')} className="flex flex-col items-stretch justify-start rounded-2xl bg-[#161b2a] overflow-hidden border border-slate-700/50 shadow-lg shadow-black/50 group cursor-pointer active:scale-[0.99] transition-transform">
-                        <div
-                            className="relative w-full aspect-video bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                            style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAbJOP7WzsJYFXcyYNWoIIBlsDt4ZPJ1BHC1ZTelpeJi1sK5u98gxOwMRrgaohwiAstuRF5v7rmbO1S4T7WQaDx49ZUWseeekprSeOLQ9wqaGgtl_v7leOuBPNeFoIibHbdF0x20AeX2Hjt2y0g4Hfhew5QMKzyWvMjUc--hR6wQndpnNbDw-p4wgG2CdGp2GPo0kaATFGL1Pjyjz0dSm902HngONA9iVb3SwurFB-avjaJZ-hHJwQ6hRcjnc1Wa0fUGLnnYZPBMOfD")' }}
+            <main className="relative z-10 flex-1 overflow-y-auto p-4 lg:p-6 pb-28 lg:pb-36 max-w-[1600px] mx-auto w-full">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+                    {/* Left Column (Main Focus) */}
+                    <div className="lg:col-span-8 flex flex-col gap-3 lg:gap-4">
+                        {/* Embedded Live Telemetry */}
+                        <div className="bg-[#161b2a]/50 p-3 lg:p-4 rounded-3xl border border-slate-800/80 shadow-inner">
+                    {activeAppointment ? (
+                        <div className="flex flex-col gap-4">
+                            <div className="flex items-center justify-between mb-1">
+                                <h2 className="text-white text-lg font-black tracking-tight drop-shadow-md">
+                                    {activeAppointment.vehicle?.brand} {activeAppointment.vehicle?.model}
+                                </h2>
+                                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">
+                                    Patente: <span className="text-slate-200">{activeAppointment.vehicle?.plate}</span>
+                                </p>
+                            </div>
+                            {activeAppointment.status === 'scheduled' ? (
+                                <div className="flex flex-col gap-3">
+                                    <div className="bg-[#161b2a] border border-slate-700/50 p-4 rounded-xl flex items-center justify-between shadow-lg shadow-black/30 w-full">
+                                        <div className="flex items-center gap-3">
+                                            <div className="size-10 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20">
+                                                <span className="material-symbols-outlined text-primary">calendar_clock</span>
+                                            </div>
+                                            <div>
+                                                <h4 className="text-[10px] font-black tracking-widest uppercase text-white drop-shadow-sm">Turno Agendado</h4>
+                                                <p className="text-[11px] text-slate-400 font-bold tracking-wider mt-0.5">{activeAppointment.date} | {activeAppointment.time}</p>
+                                            </div>
+                                        </div>
+                                        <div className="bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700/50">
+                                            <span className="text-[9px] uppercase font-bold tracking-widest text-slate-300">Esperando Ingreso</span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={handleMarkArrivalClick}
+                                        className="w-full bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-white border border-emerald-500/30 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-sm"
+                                    >
+                                        <span className="material-symbols-outlined text-lg">storefront</span>
+                                        Realizar Check-in Digital
+                                    </button>
+                                </div>
+                            ) : (
+                                <>
+                                    {activeAppointment.authorizationStatus === 'pending_client' && (
+                                        <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-2xl flex flex-col gap-3 shadow-[0_0_15px_rgba(245,158,11,0.15)] relative overflow-hidden mb-4">
+                                            <div className="absolute -right-6 -top-6 bg-amber-500/20 size-24 rounded-full blur-2xl pointer-events-none"></div>
+                                            <div className="flex items-start gap-3">
+                                                <div className="bg-amber-500/20 p-2 rounded-xl">
+                                                    <span className="material-symbols-outlined text-amber-500">request_quote</span>
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-amber-500 font-bold text-sm tracking-wide">Presupuesto Extra Requerido</h4>
+                                                    <p className="text-slate-300 text-[11px] mt-1 leading-relaxed">
+                                                        El taller ha cotizado repuestos adicionales o mano de obra necesarios para continuar con el trabajo óptimo en tu vehículo.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => setIsBudgetModalOpen(true)}
+                                                className="w-full bg-amber-500 hover:bg-amber-400 text-[#0a0c14] py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all mt-1 flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.2)] animate-pulse hover:animate-none"
+                                            >
+                                                <span className="material-symbols-outlined text-base">visibility</span>
+                                                Revisar Cotización
+                                            </button>
+                                        </div>
+                                    )}
+                                    <LiveTelemetryCard appointment={activeAppointment} />
+                                </>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="bg-[#161b2a] border border-slate-700/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-lg shadow-black/50">
+                            <div className="size-10 bg-slate-800 rounded-full flex items-center justify-center mb-2 border border-slate-700">
+                                <span className="material-symbols-outlined text-2xl text-slate-500">garage</span>
+                            </div>
+                            <h3 className="text-white text-sm font-bold mb-1">Sin Servicios Activos</h3>
+                            <p className="text-xs text-slate-400 max-w-[250px] leading-snug">
+                                Actualmente no tienes ninguna motocicleta en servicio. Puedes agendar una cita o revisar tu historial.
+                            </p>
+                            <button
+                                onClick={() => navigate('/appointments')}
+                                className="mt-3 bg-primary/10 hover:bg-primary text-primary hover:text-[#0a0c14] border border-primary/30 px-5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1.5"
+                            >
+                                <span className="material-symbols-outlined text-[14px]">calendar_month</span>
+                                Agendar Cita
+                            </button>
+                        </div>
+                    )}
+                        </div>
+
+                        {/* Quick Actions (Now a grid instead of horizontal scroll on large screens) */}
+                        <div className="grid grid-cols-5 gap-2 lg:gap-3">
+
+                        <button
+                            onClick={() => navigate('/appointments')}
+                            className="w-full flex flex-col items-center justify-center p-2 lg:p-2.5 rounded-2xl bg-[#161b2a] border border-slate-700/50 hover:border-primary/50 transition-colors gap-2 lg:gap-2.5 group shadow-sm active:scale-95"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#161b2a] via-[#161b2a]/20 to-transparent"></div>
-                            <div className="absolute top-3 left-3 bg-primary/90 text-[#0a0c14] text-[10px] font-black px-2.5 py-1 rounded shadow-md tracking-widest uppercase">
-                                Servicio Activo
+                            <div className="size-10 lg:size-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors shadow-inner">
+                                <span className="material-symbols-outlined text-primary text-[20px] lg:text-[22px]">add_circle</span>
                             </div>
-                        </div>
-                        <div className="relative flex w-full flex-col gap-4 p-5 -mt-6">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h2 className="text-white text-xl font-black tracking-tight drop-shadow-md">Ducati Panigale V4</h2>
-                                    <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mt-0.5">Patente: <span className="text-slate-200">DX-9982</span></p>
-                                </div>
-                                <div className="bg-primary/20 border border-primary/40 px-3 py-1 rounded-full shadow-[0_0_15px_rgba(13,204,242,0.2)]">
-                                    <p className="text-primary text-[10px] font-black uppercase tracking-widest">En Reparación</p>
-                                </div>
+                            <span className="text-[9px] font-black text-slate-300 text-center leading-tight uppercase tracking-widest">Agendar</span>
+                        </button>
+                        <button
+                            onClick={() => navigate('/history')}
+                            className="w-full flex flex-col items-center justify-center p-2 lg:p-2.5 rounded-2xl bg-[#161b2a] border border-slate-700/50 hover:border-primary/50 transition-colors gap-2 lg:gap-2.5 group shadow-sm active:scale-95"
+                        >
+                            <div className="size-10 lg:size-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors shadow-inner">
+                                <span className="material-symbols-outlined text-primary text-[20px] lg:text-[22px]">history_edu</span>
                             </div>
-
-                            {/* Mini Stats */}
-                            <div className="grid grid-cols-3 gap-2 py-3 border-y border-slate-700/50">
-                                <div className="flex flex-col">
-                                    <span className="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Salud</span>
-                                    <span className="text-xs text-orange-400 font-black mt-0.5">Regular</span>
-                                </div>
-                                <div className="flex flex-col border-x border-slate-700/50 px-3">
-                                    <span className="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Nº Servicio</span>
-                                    <span className="text-xs text-slate-200 font-bold mt-0.5">#DT-4821</span>
-                                </div>
-                                <div className="flex flex-col items-end">
-                                    <span className="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Próximo</span>
-                                    <span className="text-xs text-slate-200 font-bold mt-0.5">12,450 km</span>
-                                </div>
+                            <span className="text-[9px] font-black text-slate-300 text-center leading-tight uppercase tracking-widest">Historial</span>
+                        </button>
+                        <button
+                            onClick={() => window.open(`https://api.whatsapp.com/send?phone=${appConfig.social.whatsapp}&text=Hola%20${appConfig.companyName},%20necesito%20asistencia.`, '_blank', 'noopener,noreferrer')}
+                            className="w-full flex flex-col items-center justify-center p-2 lg:p-2.5 rounded-2xl bg-[#161b2a] border border-slate-700/50 hover:border-emerald-500/50 transition-colors gap-2 lg:gap-2.5 group shadow-sm active:scale-95"
+                        >
+                            <div className="size-10 lg:size-10 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors shadow-inner">
+                                <span className="material-symbols-outlined text-emerald-500 text-[20px] lg:text-[22px]">chat</span>
                             </div>
-
-                            <button className="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-11 px-4 bg-primary text-[#0a0c14] text-[11px] font-black tracking-widest hover:bg-primary/90 transition-all active:scale-[0.98] shadow-[0_0_20px_rgba(13,204,242,0.3)] uppercase">
-                                <span>Ver Telemetría en Vivo</span>
-                                <span className="material-symbols-outlined ml-2 text-lg">sensors</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Timeline of Transparency */}
-                <div className="px-5 py-2 mt-2">
-                    <h3 className="text-slate-100 text-xs font-black uppercase tracking-widest mb-6 flex items-center drop-shadow-sm">
-                        <span className="w-1.5 h-4 bg-primary rounded-full mr-2.5 shadow-[0_0_8px_rgba(13,204,242,0.8)]"></span>
-                        Línea de Transparencia
-                    </h3>
-
-                    <div className="grid grid-cols-[32px_1fr] gap-x-5 px-1 relative">
-                        {/* Continuous line background */}
-                        <div className="absolute left-[19px] top-4 bottom-10 w-0.5 bg-slate-800"></div>
-
-                        {/* Step 1 */}
-                        <div className="flex flex-col items-center relative z-10">
-                            <div className="size-8 rounded-full bg-primary flex items-center justify-center shadow-[0_0_15px_rgba(13,204,242,0.4)] ring-4 ring-[#0a0c14]">
-                                <span className="material-symbols-outlined text-[#0a0c14] text-[18px] font-bold">check</span>
+                            <span className="text-[9px] font-black text-slate-300 text-center leading-tight uppercase tracking-widest">Soporte</span>
+                        </button>
+                        <button
+                            onClick={() => setIsFeedbackModalOpen(true)}
+                            className="w-full flex flex-col items-center justify-center p-2 lg:p-2.5 rounded-2xl bg-[#161b2a] border border-slate-700/50 hover:border-amber-500/50 transition-colors gap-2 lg:gap-2.5 group shadow-sm active:scale-95"
+                        >
+                            <div className="size-10 lg:size-10 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors shadow-inner">
+                                <span className="material-symbols-outlined text-amber-500 text-[20px] lg:text-[22px]">star</span>
                             </div>
-                            <div className="w-0.5 bg-primary h-12"></div>
-                        </div>
-                        <div className="pb-7 pt-1">
-                            <p className="text-slate-100 text-sm font-bold">Recepción</p>
-                            <p className="text-slate-400 text-[11px] font-medium mt-0.5">Oct 24, 09:30 AM • <span className="text-slate-500">Recibido por Marco</span></p>
-                        </div>
-
-                        {/* Step 2 */}
-                        <div className="flex flex-col items-center relative z-10">
-                            <div className="size-8 rounded-full bg-primary flex items-center justify-center shadow-[0_0_15px_rgba(13,204,242,0.4)] ring-4 ring-[#0a0c14]">
-                                <span className="material-symbols-outlined text-[#0a0c14] text-[18px] font-bold">analytics</span>
+                            <span className="text-[9px] font-black text-slate-300 text-center leading-tight uppercase tracking-widest">Reseña</span>
+                        </button>
+                        <button
+                            onClick={() => navigate('/rutas')}
+                            className="w-full flex flex-col items-center justify-center p-2 lg:p-2.5 rounded-2xl bg-[#161b2a] border border-slate-700/50 hover:border-primary/50 transition-colors gap-2 lg:gap-2.5 group shadow-sm active:scale-95"
+                        >
+                            <div className="size-10 lg:size-10 rounded-xl bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors shadow-inner">
+                                <span className="material-symbols-outlined text-purple-500 text-[20px] lg:text-[22px]">explore</span>
                             </div>
-                            <div className="w-0.5 bg-primary h-14"></div>
-                        </div>
-                        <div className="pb-8 pt-1">
-                            <p className="text-slate-100 text-sm font-bold">Diagnóstico Completo</p>
-                            <p className="text-slate-400 text-[11px] font-medium mt-0.5">Oct 24, 11:45 AM • <span className="text-slate-500">Escaneo Electrónico Listo</span></p>
-                        </div>
-
-                        {/* Step 3 */}
-                        <div className="flex flex-col items-center relative z-10">
-                            <div className="size-8 rounded-full border-2 border-primary bg-[#0a0c14] flex items-center justify-center relative shadow-[0_0_15px_rgba(13,204,242,0.2)] ring-4 ring-[#0a0c14]">
-                                <span className="material-symbols-outlined text-primary text-[18px] animate-pulse">engineering</span>
-                            </div>
-                        </div>
-                        <div className="pb-8 pt-1">
-                            <p className="text-primary text-sm font-black drop-shadow-[0_0_5px_rgba(13,204,242,0.3)]">En Reparación</p>
-                            <p className="text-slate-300 text-xs font-semibold mt-1">Ensamblaje de Embrague y Optimización de Mapa</p>
-                            <div className="mt-3 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                                <div className="bg-primary h-full w-2/3 shadow-[0_0_10px_rgba(13,204,242,0.8)] relative">
-                                    <div className="absolute inset-0 bg-white/30 animate-pulse"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Step 4 */}
-                        <div className="flex flex-col items-center pt-2 relative z-10">
-                            <div className="size-8 rounded-full border border-slate-700 bg-[#161b2a] flex items-center justify-center ring-4 ring-[#0a0c14]">
-                                <span className="material-symbols-outlined text-slate-500 text-[18px]">sports_score</span>
-                            </div>
-                        </div>
-                        <div className="pb-4 pt-3">
-                            <p className="text-slate-500 text-sm font-bold">Listo para Entregar</p>
-                            <p className="text-slate-600 text-[11px] font-medium mt-0.5 italic">Estimado: Mañana, 16:00</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="grid grid-cols-3 gap-3 px-4 py-4 mt-2">
-                    <button
-                        onClick={() => navigate('/appointments')}
-                        className="flex flex-col items-center justify-center p-4 rounded-2xl bg-[#161b2a] border border-slate-700/50 hover:border-primary/50 transition-colors gap-3 group shadow-sm active:scale-95"
-                    >
-                        <div className="size-11 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors shadow-inner">
-                            <span className="material-symbols-outlined text-primary text-[22px]">add_circle</span>
-                        </div>
-                        <span className="text-[9px] font-black text-slate-300 text-center leading-tight uppercase tracking-widest">Agendar Cita</span>
-                    </button>
-                    <button
-                        onClick={() => navigate('/history')}
-                        className="flex flex-col items-center justify-center p-4 rounded-2xl bg-[#161b2a] border border-slate-700/50 hover:border-primary/50 transition-colors gap-3 group shadow-sm active:scale-95"
-                    >
-                        <div className="size-11 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors shadow-inner">
-                            <span className="material-symbols-outlined text-primary text-[22px]">history_edu</span>
-                        </div>
-                        <span className="text-[9px] font-black text-slate-300 text-center leading-tight uppercase tracking-widest">Historial</span>
-                    </button>
-                    <button
-                        onClick={() => window.open('https://api.whatsapp.com/send?phone=1234567890&text=Hola%20Dynotech,%20necesito%20asistencia.', '_blank', 'noopener,noreferrer')}
-                        className="flex flex-col items-center justify-center p-4 rounded-2xl bg-[#161b2a] border border-slate-700/50 hover:border-emerald-500/50 transition-colors gap-3 group shadow-sm active:scale-95"
-                    >
-                        <div className="size-11 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors shadow-inner">
-                            <span className="material-symbols-outlined text-emerald-500 text-[22px]">chat</span>
-                        </div>
-                        <span className="text-[9px] font-black text-slate-300 text-center leading-tight uppercase tracking-widest">Soporte WA</span>
-                    </button>
-                </div>
-
-                {/* My Assets Section */}
-                <div className="px-4 py-6">
-                    <div className="flex items-center justify-between mb-5">
-                        <h3 className="text-slate-100 text-xs font-black uppercase tracking-widest flex items-center drop-shadow-sm">
-                            <span className="w-1.5 h-4 bg-slate-500 rounded-full mr-2.5"></span>
-                            Mis Vehículos
-                        </h3>
-                        <div className="flex items-center gap-3">
-                            <button onClick={() => navigate('/add-motorcycle')} className="bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[14px]">add</span>
-                                Nuevo
-                            </button>
-                            <button onClick={() => navigate('/warranties')} className="text-primary text-[10px] font-black uppercase tracking-widest hover:underline underline-offset-4 decoration-2">Ver Todos</button>
+                            <span className="text-[9px] font-black text-slate-300 text-center leading-tight uppercase tracking-widest">Rutas</span>
+                        </button>
                         </div>
                     </div>
 
-                    <div className="flex gap-4 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden -mx-4 px-4">
+                    {/* Right Column (Secondary Info) */}
+                    <div className="lg:col-span-4 flex flex-col gap-4 lg:gap-5">
+                        {/* My Assets Section */}
+                        <section className="bg-[#161b2a]/50 p-4 lg:p-5 rounded-3xl border border-slate-800/80 shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
+                            <div className="flex items-center justify-between mb-4 lg:mb-5">
+                                <h3 className="text-slate-100 text-[11px] lg:text-xs font-black uppercase tracking-widest flex items-center drop-shadow-sm">
+                                    <span className="w-1.5 h-4 bg-slate-500 rounded-full mr-2.5"></span>
+                                    Mis Vehículos
+                                </h3>
+                                <div className="flex items-center gap-2">
+                                    <button onClick={() => navigate('/add-motorcycle')} className="bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 px-2 lg:px-3 py-1.5 rounded-lg text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-[14px]">add</span>
+                                        Nuevo
+                                    </button>
+                                    <button onClick={() => navigate('/warranties')} className="text-primary text-[9px] lg:text-[10px] font-black uppercase tracking-widest hover:underline underline-offset-4 decoration-2">Garantías</button>
+                                </div>
+                            </div>
+        
+                            <div className="flex flex-col gap-3 lg:gap-4">
                         {loading ? (
-                            <div className="text-slate-400 text-sm py-4">Cargando vehículos...</div>
+                            <div className="text-slate-400 text-xs py-4">Cargando vehículos...</div>
                         ) : vehicles.length > 0 ? (
                             vehicles.map((bike) => (
-                                <div key={bike.id} className="min-w-[220px] rounded-2xl bg-[#161b2a] border border-slate-700/50 overflow-hidden shadow-lg hover:border-slate-500 transition-colors cursor-pointer">
+                                <div
+                                    key={bike.id}
+                                    onClick={() => { setSelectedMotorcycle(bike); setIsEditModalOpen(true); }}
+                                    className="min-w-[220px] rounded-xl lg:rounded-2xl bg-[#161b2a] border border-slate-700/50 overflow-hidden shadow-lg hover:border-primary transition-colors cursor-pointer group"
+                                >
                                     <div
-                                        className="h-28 w-full bg-cover bg-center"
+                                        className="relative h-24 lg:h-28 w-full bg-cover bg-center"
                                         style={{ backgroundImage: `url("${bike.imageUrl || 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&q=80&w=500'}")` }}
-                                    ></div>
-                                    <div className="p-4">
-                                        <h4 className="text-slate-100 text-[13px] font-black tracking-wide">{bike.brand} {bike.model}</h4>
-                                        <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider mt-1">Patente: {bike.plate}</p>
+                                    >
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                            <span className="material-symbols-outlined text-white text-2xl lg:text-3xl">edit</span>
+                                        </div>
+                                    </div>
+                                    <div className="p-3 lg:p-4">
+                                        <h4 className="text-slate-100 text-xs lg:text-[13px] font-black tracking-wide">{bike.brand} {bike.model}</h4>
+                                        <p className="text-slate-400 text-[9px] lg:text-[10px] font-semibold uppercase tracking-wider mt-0.5 lg:mt-1">Patente: {bike.plate}</p>
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <div className="w-full text-center py-6 bg-[#161b2a] rounded-2xl border border-slate-700/50">
-                                <span className="material-symbols-outlined text-slate-500 text-3xl mb-2">two_wheeler</span>
-                                <p className="text-slate-400 text-xs uppercase tracking-widest">No tienes vehículos registrados</p>
+                            <div className="w-full text-center py-5 lg:py-6 bg-[#161b2a] rounded-xl border border-slate-700/50">
+                                <span className="material-symbols-outlined text-slate-500 text-2xl lg:text-3xl mb-1 lg:mb-2">two_wheeler</span>
+                                <p className="text-slate-400 text-[10px] lg:text-xs uppercase tracking-widest">No tienes vehículos registrados</p>
                             </div>
-                        )}
+                                )}
+                             </div>
+                         </section>
+                         
+                         {/* My Orders Section */}
+                         <section className="bg-[#161b2a]/50 p-4 lg:p-5 rounded-3xl border border-slate-800/80 shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
+                             <div className="flex items-center justify-between mb-4 lg:mb-5">
+                                 <h3 className="text-slate-100 text-[11px] lg:text-xs font-black uppercase tracking-widest flex items-center drop-shadow-sm">
+                                     <span className="w-1.5 h-4 bg-primary rounded-full mr-2.5"></span>
+                                     Pedidos Tienda
+                                 </h3>
+                                 <button onClick={() => navigate('/tienda')} className="text-primary text-[9px] lg:text-[10px] font-black uppercase tracking-widest hover:underline underline-offset-4 decoration-2 border border-primary/20 px-2 py-1 rounded-md">
+                                     Ir a Tienda
+                                 </button>
+                             </div>
+                             
+                             <div className="flex flex-col gap-3">
+                                 {loading ? (
+                                     <div className="text-slate-400 text-xs py-4 text-center">Cargando pedidos...</div>
+                                 ) : storeOrders.length > 0 ? (
+                                     storeOrders.slice(0, 3).map(order => {
+                                         const isCompleted = order.status === 'completed';
+                                         const isCancelled = order.status === 'cancelled';
+                                         return (
+                                             <div key={order.id} className="bg-[#121826] border border-slate-700/50 p-3 rounded-2xl flex flex-col gap-2 shadow-sm">
+                                                 <div className="flex justify-between items-center">
+                                                     <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">ID: {order.id.substring(0,8)}</p>
+                                                     <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                                                         isCompleted ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 
+                                                         isCancelled ? 'bg-red-500/10 text-red-500 border border-red-500/30' : 
+                                                         'bg-amber-500/10 text-amber-500 border border-amber-500/30'
+                                                     }`}>
+                                                         {order.status === 'pending' ? 'Pendiente' : 
+                                                          order.status === 'processing' ? 'Procesando' : 
+                                                          order.status === 'shipped' ? 'Enviado' : 
+                                                          order.status === 'completed' ? 'Completado' : 'Cancelado'}
+                                                     </span>
+                                                 </div>
+                                                 <div className="flex justify-between items-end mt-1">
+                                                     <div>
+                                                         <p className="text-xs text-slate-300 font-medium">{order.totals?.itemsCount} producto(s)</p>
+                                                         <p className="text-[10px] text-slate-500 mt-0.5">
+                                                             {order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('es-AR') : 'Reciente'}
+                                                         </p>
+                                                     </div>
+                                                     <p className="text-sm font-black text-white">${Number(order.totals?.totalPrice).toLocaleString()}</p>
+                                                 </div>
+                                             </div>
+                                         )
+                                     })
+                                 ) : (
+                                     <div className="w-full text-center py-5 bg-[#161b2a] rounded-xl border border-slate-700/50">
+                                         <span className="material-symbols-outlined text-slate-500 text-2xl mb-1">shopping_bag</span>
+                                         <p className="text-slate-400 text-[10px] uppercase tracking-widest">Aún no tienes pedidos</p>
+                                     </div>
+                                 )}
+                             </div>
+                         </section>
+                        
+                        {/* Useful Links / Additional Info placeholder for right column */}
+                        <section className="bg-gradient-to-br from-primary/10 to-[#161b2a] border border-primary/20 p-5 rounded-3xl relative overflow-hidden group">
+                           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-700 pointer-events-none"></div>
+                           <h3 className="text-white text-sm font-black tracking-wide flex items-center gap-2 mb-2 relative z-10">
+                               <span className="material-symbols-outlined text-primary">diamond</span>
+                               Experiencia Premium
+                           </h3>
+                           <p className="text-xs text-slate-400 font-medium leading-relaxed relative z-10">
+                               Accede al historial clínico completo de tus vehículos, revisa las facturas y presupuestos detallados en tu panel.
+                           </p>
+                        </section>
+
                     </div>
                 </div>
             </main>
 
-            {/* Bottom Navigation Bar */}
-            <nav className="fixed bottom-0 left-0 right-0 max-w-2xl mx-auto border-t border-slate-800/80 bg-[#0a1315]/95 backdrop-blur-xl px-4 flex justify-between items-center z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] h-[72px] pb-2 text-white">
-                <Link to="/customer-dashboard" className="flex flex-1 flex-col items-center justify-center gap-1.5 text-primary">
-                    <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>dashboard</span>
-                    <span className="text-[9px] font-black uppercase tracking-widest">Panel</span>
-                </Link>
-                <button onClick={() => navigate('/warranties')} className="flex flex-col items-center justify-center w-full h-full text-slate-500 hover:text-primary transition-colors group">
-                    <span className="material-symbols-outlined text-[22px] group-hover:-translate-y-1 transition-transform duration-300">motorcycle</span>
-                    <span className="text-[9px] font-black uppercase tracking-widest mt-1">Garaje</span>
-                </button>
-                <button onClick={() => navigate('/appointments')} className="flex flex-col items-center justify-center w-full h-full text-slate-500 hover:text-primary transition-colors group">
-                    <span className="material-symbols-outlined text-[24px]">calendar_today</span>
-                    <span className="text-[9px] font-bold uppercase tracking-widest">Citas</span>
-                </button>
-                <Link to="/settings" className="flex flex-1 flex-col items-center justify-center gap-1.5 text-slate-500 hover:text-slate-300 transition-colors">
-                    <span className="material-symbols-outlined text-[24px]">person</span>
-                    <span className="text-[9px] font-bold uppercase tracking-widest">Cuenta</span>
-                </Link>
-            </nav>
+            <LeaveFeedbackModal
+                isOpen={isFeedbackModalOpen}
+                onClose={() => setIsFeedbackModalOpen(false)}
+            />
+
+            <EditMotorcycleModal
+                isOpen={isEditModalOpen}
+                onClose={() => { setIsEditModalOpen(false); setSelectedMotorcycle(null); }}
+                motorcycle={selectedMotorcycle}
+            />
+
+            <DigitalSignatureModal
+                isOpen={isSignatureModalOpen}
+                onClose={() => setIsSignatureModalOpen(false)}
+                onConfirm={handleConfirmArrival}
+                customerName={currentUser?.displayName || currentUser?.email?.split('@')[0] || "Cliente"}
+            />
+
+            <ClientBudgetModal
+                isOpen={isBudgetModalOpen}
+                onClose={() => setIsBudgetModalOpen(false)}
+                appointment={activeAppointment}
+            />
+
+            {(activeAppointment?.status === 'delivery_pending' && !activeAppointment.clientConfirmedPickup) && (
+                <ClientReadyModal
+                    appointment={activeAppointment}
+                    onClose={() => {}} 
+                />
+            )}
+
+            <VirtualMechanicChat />
+
+            <BottomNav active="dashboard" />
         </div>
     );
 };

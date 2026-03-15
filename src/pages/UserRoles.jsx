@@ -126,7 +126,7 @@ const UserRoles = () => {
                                             <div className="absolute bottom-0 right-0 size-3 rounded-full bg-primary border-2 border-white dark:border-[#161b2a]"></div>
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-slate-900 dark:text-slate-100">{user.displayName || 'Dynotech User'}</h4>
+                                            <h4 className="font-bold text-slate-900 dark:text-slate-100">{user.displayName || 'adsa_taller User'}</h4>
                                             <p className={`text-[11px] font-bold uppercase tracking-widest mt-0.5 ${user.role === 'admin' ? 'text-red-500' : 'text-primary'}`}>
                                                 {displayRole}
                                             </p>

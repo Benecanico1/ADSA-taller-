@@ -355,7 +355,7 @@ const Appointments = () => {
 VERSION:2.0
 PRODID:-//${appConfig.companyName}//ES
 BEGIN:VEVENT
-UID:${new Date().getTime()}@dynotechpowergarage.com
+UID:${new Date().getTime()}@adsataller.com
 DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z
 DTSTART:${eventDateStr}T${startHour}0000Z
 DTEND:${eventDateStr}T${endHour}0000Z
@@ -368,7 +368,7 @@ END:VCALENDAR`;
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', 'cita_dynotech.ics');
+            link.setAttribute('download', 'cita_adsa_taller.ics');
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);

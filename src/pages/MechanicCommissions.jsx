@@ -95,7 +95,7 @@ const MechanicCommissions = () => {
                 </button>
                 <div className="flex flex-col items-center">
                     <h2 className="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight">Liquidación</h2>
-                    <p className="text-[10px] uppercase tracking-widest text-primary font-bold">Dynotech Power Garage</p>
+                    <p className="text-[10px] uppercase tracking-widest text-primary font-bold">{appConfig.companyName}</p>
                 </div>
                 <div className="flex w-10 items-center justify-end">
                     <button className="relative flex items-center justify-center rounded-xl h-10 w-10 bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:text-primary transition-colors border border-slate-200 dark:border-slate-700 active:scale-95 shadow-sm">

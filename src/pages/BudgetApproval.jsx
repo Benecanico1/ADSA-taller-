@@ -164,7 +164,7 @@ const BudgetApproval = () => {
                     </button>
                 </div>
                 <p className="text-[10px] text-slate-500 text-center px-4 leading-tight">
-                    Al aprobar, autorizas a Dynotech Power Garage a proceder con las reparaciones especificadas.
+                    Al aprobar, autorizas a {appConfig.companyName} a proceder con las reparaciones especificadas.
                 </p>
             </div>
 

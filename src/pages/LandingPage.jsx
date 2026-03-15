@@ -45,7 +45,7 @@ const servicesData = [
         id: 'banco',
         icon: 'speed_camera',
         title: 'Banco de Pruebas',
-        desc: 'Medición exacta de potencia a la rueda y optimización en entorno controlado (Dyno).',
+        desc: 'Medición exacta de potencia a la rueda y optimización en entorno controlado (Laboratorio de Rendimiento).',
         details: [
             'Medición de caballos de fuerza (HP) y torque real a la rueda.',
             'Diagnóstico predictivo de motor bajo carga.',
@@ -220,7 +220,7 @@ const LandingPage = () => {
                     </p>
                     <div className="flex flex-col gap-3 pt-4">
                         <div className="w-full bg-primary/5 border border-primary/10 rounded-xl p-4 text-center mt-4 backdrop-blur-sm">
-                            <p className="text-slate-400 text-xs font-medium uppercase tracking-widest mb-2">Descubre Dynotech</p>
+                            <p className="text-slate-400 text-xs font-medium uppercase tracking-widest mb-2">Descubre adsa_taller</p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-3">
                                 <Link to="/tienda" className="inline-flex items-center justify-center gap-2 bg-white text-black px-4 py-2 rounded-lg font-bold hover:bg-slate-200 transition-colors w-full sm:w-auto">
                                     <span className="material-symbols-outlined text-sm">storefront</span>
@@ -353,7 +353,7 @@ const LandingPage = () => {
                                 ¿Qué vamos a hacer este fin de semana?
                             </h3>
                             <p className="text-slate-300 text-sm font-medium max-w-[85%] leading-relaxed drop-shadow-md">
-                                Únete a la comunidad Dynotech. Descubre salidas en grupo, comparte con otros moteros y lánzate a nuevas aventuras curadas por nuestros Promotores.
+                                Únete a la comunidad adsa_taller. Descubre salidas en grupo, comparte con otros moteros y lánzate a nuevas aventuras curadas por nuestros Promotores.
                             </p>
                             <Link to="/rutas" className="mt-4 bg-purple-600 hover:bg-purple-500 text-white border-none px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(147,51,234,0.3)] hover:shadow-[0_0_30px_rgba(147,51,234,0.5)] active:scale-95 flex items-center gap-2 group/btn">
                                 Entrar al Chat de la Comunidad
@@ -375,7 +375,7 @@ const LandingPage = () => {
                         <span className="material-symbols-outlined text-5xl text-primary drop-shadow-[0_0_10px_rgba(255,40,0,0.8)]">workspace_premium</span>
                     </div>
                     <h2 className="text-3xl font-black text-white mb-3 uppercase tracking-tight drop-shadow-lg">
-                        Dynotech <span className="text-primary italic">Rewards</span>
+                        adsa_taller <span className="text-primary italic">Rewards</span>
                     </h2>
                     <p className="text-slate-300 text-sm leading-relaxed font-medium">
                         Únete sin costo a nuestro club exclusivo. Gana puntos con cada servicio en el taller o compartiendo tu pasión en redes, y canjéalos por increíbles beneficios.
@@ -473,9 +473,9 @@ const LandingPage = () => {
                     <div>
                         <h4 className="text-primary text-sm font-bold uppercase tracking-widest mb-4">Contacto</h4>
                         <div className="space-y-3">
-                            <a href="mailto:info@dynotechpowergarage.com" className="flex items-center gap-3 text-slate-400 hover:text-slate-300 transition-colors">
+                            <a href="mailto:info@adsataller.com" className="flex items-center gap-3 text-slate-400 hover:text-slate-300 transition-colors">
                                 <span className="material-symbols-outlined text-slate-500 text-sm">mail</span>
-                                <span>info@dynotechpowergarage.com</span>
+                                <span>info@adsataller.com</span>
                             </a>
                             <a href="tel:+5491100000000" className="flex items-center gap-3 text-slate-400 hover:text-slate-300 transition-colors">
                                 <span className="material-symbols-outlined text-slate-500 text-sm">call</span>
@@ -486,10 +486,10 @@ const LandingPage = () => {
                     <div>
                         <h4 className="text-primary text-sm font-bold uppercase tracking-widest mb-4">Siguenos</h4>
                         <div className="flex gap-4">
-                            <a href="https://instagram.com/dynotechpowergarage" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-border-dark flex items-center justify-center text-slate-300 hover:bg-primary/20 hover:text-primary transition-colors">
+                            <a href="https://instagram.com/adsataller" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-border-dark flex items-center justify-center text-slate-300 hover:bg-primary/20 hover:text-primary transition-colors">
                                 <span className="material-symbols-outlined">photo_camera</span>
                             </a>
-                            <a href="https://tiktok.com/@dynotechpowergarage" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-border-dark flex items-center justify-center text-slate-300 hover:bg-primary/20 hover:text-primary transition-colors">
+                            <a href="https://tiktok.com/@adsataller" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-border-dark flex items-center justify-center text-slate-300 hover:bg-primary/20 hover:text-primary transition-colors">
                                 <span className="material-symbols-outlined">play_arrow</span>
                             </a>
                         </div>

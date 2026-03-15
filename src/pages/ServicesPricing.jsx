@@ -18,7 +18,7 @@ const ServicesPricing = () => {
                         </button>
                         <div>
                             <h1 className="text-lg font-bold leading-tight tracking-tight">Configuración</h1>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Dynotech Power Garage</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">{appConfig.companyName}</p>
                         </div>
                     </div>
                     <div className="flex gap-2">
@@ -166,11 +166,11 @@ const ServicesPricing = () => {
                                             </button>
                                         </td>
                                     </tr>
-                                    {/* Row 5 - Dyno */}
+                                    {/* Row 5 - Dinamómetro */}
                                     <tr className="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors group">
                                         <td className="p-3">
                                             <div className="text-sm font-semibold">Rodillo Potenciación</div>
-                                            <div className="text-[10px] text-slate-500">Prueba Dyno + Telemetría</div>
+                                            <div className="text-[10px] text-slate-500">Prueba Analítica + Telemetría</div>
                                         </td>
                                         <td className="p-3">
                                             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">Perf.</span>

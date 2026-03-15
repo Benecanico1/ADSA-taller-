@@ -84,7 +84,7 @@ const Warranties = () => {
             <header className="sticky top-0 z-50 bg-[#161b2a]/80 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-3">
                     <span className="material-symbols-outlined text-primary text-3xl">shield_with_heart</span>
-                    <h1 className="text-xl font-extrabold tracking-tight">Dynotech <span className="text-primary">Garage</span></h1>
+                    <h1 className="text-xl font-extrabold tracking-tight">adsa_taller <span className="text-primary">Garage</span></h1>
                 </div>
                 <div className="flex gap-2">
                     <button onClick={togglePanel} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
@@ -226,7 +226,7 @@ const Warranties = () => {
                     {/* Quality Commitment Section */}
                     <div className="mt-8 p-6 bg-primary/10 border border-primary/20 rounded-2xl text-center">
                         <span className="material-symbols-outlined text-primary text-4xl mb-2">verified</span>
-                        <h4 className="font-bold text-lg mb-2">Compromiso Dynotech</h4>
+                        <h4 className="font-bold text-lg mb-2">Compromiso adsa_taller</h4>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Todas nuestras reparaciones cuentan con certificación digital respaldada por técnicos certificados.</p>
                         <button className="text-primary font-bold text-sm flex items-center justify-center gap-1 mx-auto">
                             Leer Términos y Condiciones <span className="material-symbols-outlined text-xs">open_in_new</span>

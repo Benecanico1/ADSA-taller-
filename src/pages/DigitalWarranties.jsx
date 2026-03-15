@@ -17,7 +17,7 @@ const DigitalWarranties = () => {
                     </button>
                     <div className="flex items-center gap-2">
                         <span className="material-symbols-outlined text-primary text-2xl">shield_with_heart</span>
-                        <h1 className="text-lg font-extrabold tracking-tight">Dynotech <span className="text-primary">Garage</span></h1>
+                        <h1 className="text-lg font-extrabold tracking-tight">adsa_taller <span className="text-primary">Garage</span></h1>
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -171,7 +171,7 @@ const DigitalWarranties = () => {
                         <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
                             <span className="material-symbols-outlined text-primary text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
                         </div>
-                        <h4 className="font-bold text-lg mb-2 text-slate-900 dark:text-white">Compromiso Dynotech</h4>
+                        <h4 className="font-bold text-lg mb-2 text-slate-900 dark:text-white">Compromiso adsa_taller</h4>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">Todas nuestras reparaciones cuentan con certificación digital respaldada por técnicos certificados.</p>
                         <button className="text-primary hover:text-primary/80 font-bold text-sm flex items-center justify-center gap-1 mx-auto transition-colors">
                             Leer Términos y Condiciones <span className="material-symbols-outlined text-[16px]">open_in_new</span>

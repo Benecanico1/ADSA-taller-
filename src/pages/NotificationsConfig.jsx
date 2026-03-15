@@ -30,7 +30,7 @@ const NotificationsConfig = () => {
                         </button>
                         <div>
                             <h1 className="text-lg font-bold leading-tight tracking-tight">Notificaciones</h1>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Dynotech Power Garage</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">{appConfig.companyName}</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">

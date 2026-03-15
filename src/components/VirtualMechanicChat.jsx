@@ -5,7 +5,7 @@ import { functions } from '../lib/firebase';
 const VirtualMechanicChat = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
-        { role: 'model', text: '¡Hola! Soy el Mecánico Virtual de Dynotech. ¿En qué te puedo asesorar hoy con tu moto?' }
+        { role: 'model', text: '¡Hola! Soy el Mecánico Virtual de adsa_taller. ¿En qué te puedo asesorar hoy con tu moto?' }
     ]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);

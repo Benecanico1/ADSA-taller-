@@ -70,7 +70,7 @@ const ClinicalHistory = () => {
                             <span className="material-symbols-outlined text-slate-400 text-5xl">two_wheeler</span>
                         </div>
                         <h2 className="text-xl font-black text-slate-900 dark:text-white mb-2">Sin Historial Clínico</h2>
-                        <p className="text-slate-500 text-sm mb-8 text-balance">Actualmente no tienes ninguna motocicleta registrada en tu perfil de Dynotech. Registra tu vehículo para comenzar a rastrear su gemelo digital.</p>
+                        <p className="text-slate-500 text-sm mb-8 text-balance">Actualmente no tienes ninguna motocicleta registrada en tu perfil de adsa_taller. Registra tu vehículo para comenzar a rastrear su gemelo digital.</p>
                         <Link to="/kanban" className="bg-primary text-[#101f22] px-6 py-3 rounded-xl font-bold font-technical shadow-[0_0_15px_rgba(37,209,244,0.3)] hover:scale-105 transition-transform flex items-center gap-2">
                             <span className="material-symbols-outlined text-lg">add_circle</span>
                             Registrar Motocicleta
@@ -149,7 +149,7 @@ const ClinicalHistory = () => {
                                 </p>
                                 <button className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary hover:bg-primary/90 px-4 py-3.5 text-xs font-black tracking-widest uppercase text-[#101522] transition-transform active:scale-[0.98] shadow-lg shadow-primary/20">
                                     <span className="material-symbols-outlined text-lg">verified_user</span>
-                                    Descargar Certificado Dynotech
+                                    Descargar Certificado adsa_taller
                                 </button>
                             </div>
 
@@ -185,7 +185,7 @@ const ClinicalHistory = () => {
                                 </p>
                                 <button className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary hover:bg-primary/90 px-4 py-3.5 text-xs font-black tracking-widest uppercase text-[#101522] transition-transform active:scale-[0.98] shadow-lg shadow-primary/20">
                                     <span className="material-symbols-outlined text-lg">verified_user</span>
-                                    Descargar Certificado Dynotech
+                                    Descargar Certificado adsa_taller
                                 </button>
                             </div>
                         </div>

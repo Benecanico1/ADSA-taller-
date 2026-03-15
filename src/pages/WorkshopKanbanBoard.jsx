@@ -77,7 +77,7 @@ const WorkshopKanbanBoard = () => {
                         <span className="material-symbols-outlined font-bold">handyman</span>
                     </div>
                     <div>
-                        <h1 className="text-lg font-bold leading-tight tracking-tight text-slate-100">Dynotech Power Garage</h1>
+                        <h1 className="text-lg font-bold leading-tight tracking-tight text-slate-100">{appConfig.companyName}</h1>
                         <p className="text-[10px] text-primary uppercase tracking-[0.2em] font-semibold">Operaciones del Taller</p>
                     </div>
                 </Link>

@@ -67,9 +67,9 @@ const Storefront = () => {
     const handleWhatsAppInquiry = (product, isMoto = false) => {
         let text = "";
         if (isMoto) {
-            text = `Hola Dynotech, vengo de la página web. Quería consultar por la moto en venta: ${product.brand} ${product.model} (${product.year}).`;
+            text = `Hola adsa_taller, vengo de la página web. Quería consultar por la moto en venta: ${product.brand} ${product.model} (${product.year}).`;
         } else {
-            text = `Hola Dynotech, vengo de la página web. Me interesa el producto: ${product.name} (SKU: ${product.sku || 'N/A'}).`;
+            text = `Hola adsa_taller, vengo de la página web. Me interesa el producto: ${product.name} (SKU: ${product.sku || 'N/A'}).`;
         }
         const encodedText = encodeURIComponent(text);
         window.open(`https://wa.me/${garagePhone}?text=${encodedText}`, '_blank');
@@ -84,7 +84,7 @@ const Storefront = () => {
                     onClick={() => navigate('/')}
                 >
                     <span className="material-symbols-outlined text-primary text-3xl">precision_manufacturing</span>
-                    <h2 className="text-slate-100 text-lg font-bold leading-tight tracking-tight hidden sm:block">Dynotech Power Garage</h2>
+                    <h2 className="text-slate-100 text-lg font-bold leading-tight tracking-tight hidden sm:block">{appConfig.companyName}</h2>
                 </div>
                 <div className="flex items-center gap-3">
                     <button 

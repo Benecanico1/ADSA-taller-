@@ -78,7 +78,7 @@ const ReceptionScanner = () => {
                         <div className="space-y-1.5 flex flex-col">
                             <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Proveedor</label>
                             <select className="w-full h-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 focus:ring-1 focus:ring-primary focus:border-primary text-sm font-medium outline-none text-slate-700 dark:text-slate-200 min-h-[48px] appearance-none cursor-pointer">
-                                <option>Dyno Parts S.A.</option>
+                                <option>ProParts S.A.</option>
                                 <option>Motor Import</option>
                                 <option>Racing Depot</option>
                             </select>

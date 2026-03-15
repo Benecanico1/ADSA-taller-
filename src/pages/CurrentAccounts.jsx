@@ -18,7 +18,7 @@ const CurrentAccounts = () => {
                 </button>
                 <div className="flex flex-col items-center">
                     <h2 className="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight">Cuentas Corrientes</h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Dynotech Power Garage</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{appConfig.companyName}</p>
                 </div>
                 <div className="flex w-10 items-center justify-end">
                     <button className="flex size-10 items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">

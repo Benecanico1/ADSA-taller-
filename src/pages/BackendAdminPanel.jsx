@@ -11,7 +11,7 @@ const BackendAdminPanel = () => {
                         <span className="material-symbols-outlined text-white text-lg">admin_panel_settings</span>
                     </div>
                     <div>
-                        <h1 className="text-sm font-bold leading-none">Dynotech Power Garage</h1>
+                        <h1 className="text-sm font-bold leading-none">{appConfig.companyName}</h1>
                         <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold mt-0.5">Centro de Control Admin</p>
                     </div>
                 </div>

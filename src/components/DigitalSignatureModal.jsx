@@ -101,7 +101,7 @@ const DigitalSignatureModal = ({ isOpen, onClose, onConfirm, customerName }) => 
                             style={{ aspectRatio: '16/9' }}>
                             <img
                                 loading="lazy"
-                                src={viewSide === 'left' ? "https://firebasestorage.googleapis.com/v0/b/dynotech-power-garaje.appspot.com/o/System%2F2025-yamaha-mt09-sp-studio-left-black-gray.jpg?alt=media" : "https://firebasestorage.googleapis.com/v0/b/dynotech-power-garaje.appspot.com/o/System%2F2025-yamaha-mt09-sp-studio-right-black-gray.jpg?alt=media"}
+                                src={viewSide === 'left' ? "https://firebasestorage.googleapis.com/v0/b/adsa_taller-power-garaje.appspot.com/o/System%2F2025-yamaha-mt09-sp-studio-left-black-gray.jpg?alt=media" : "https://firebasestorage.googleapis.com/v0/b/adsa_taller-power-garaje.appspot.com/o/System%2F2025-yamaha-mt09-sp-studio-right-black-gray.jpg?alt=media"}
                                 alt={`Perfil ${viewSide === 'left' ? 'Izquierdo' : 'Derecho'}`}
                                 className="w-full h-full object-contain select-none"
                                 onClick={handleImageClick}
@@ -205,7 +205,7 @@ const DigitalSignatureModal = ({ isOpen, onClose, onConfirm, customerName }) => 
                             </div>
                             <p className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">
                                 Declaro y acepto que el vehículo ingresa a las instalaciones en las condiciones estéticas aquí documentadas.
-                                Además, acepto los Términos y Condiciones generales del servicio aplicables a Dynotech Power Garage.
+                                Además, acepto los Términos y Condiciones generales del servicio aplicables a {appConfig.companyName}.
                             </p>
                         </label>
 

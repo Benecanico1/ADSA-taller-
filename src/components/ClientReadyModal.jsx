@@ -61,7 +61,7 @@ const ClientReadyModal = ({ appointment, onClose }) => {
                     <div className="w-full bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 mb-8">
                         <div className="flex items-center gap-3 justify-center text-blue-400 mb-2">
                             <span className="material-symbols-outlined text-xl">location_on</span>
-                            <span className="font-bold text-sm tracking-widest uppercase">Dynotech Power Garage</span>
+                            <span className="font-bold text-sm tracking-widest uppercase">{appConfig.companyName}</span>
                         </div>
                         <p className="text-[10px] text-slate-400">Te esperamos en la zona de entregas.</p>
                     </div>

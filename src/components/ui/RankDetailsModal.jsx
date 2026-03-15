@@ -36,7 +36,7 @@ const RankDetailsModal = ({ isOpen, onClose, points = 0, rankName = 'Bronce', le
                     <span className="text-primary font-black tracking-widest text-[10px] uppercase mb-1">{levelName}</span>
                     <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">Socio VIP {rankName}</h2>
                     <p className="text-xs font-bold text-slate-400 mt-2 max-w-xs mx-auto">
-                        Estás en el club exclusivo de Dynotech. Disfruta de beneficios premium en todos tus servicios.
+                        Estás en el club exclusivo de adsa_taller. Disfruta de beneficios premium en todos tus servicios.
                     </p>
                 </div>
 
@@ -74,7 +74,7 @@ const RankDetailsModal = ({ isOpen, onClose, points = 0, rankName = 'Bronce', le
                 <div className="flex gap-3 p-4 rounded-xl bg-slate-900 border border-slate-800">
                     <span className="material-symbols-outlined text-amber-500 shrink-0">info</span>
                     <p className="text-xs text-slate-300 leading-relaxed font-bold">
-                        Ganas puntos con cada servicio completado en nuestro garaje y refiriendo a nuevos pilotos a Dynotech.
+                        Ganas puntos con cada servicio completado en nuestro garaje y refiriendo a nuevos pilotos a adsa_taller.
                     </p>
                 </div>
 

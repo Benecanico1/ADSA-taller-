@@ -98,7 +98,7 @@ const PasswordRecovery = () => {
                                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/60 text-[22px]">mail</span>
                                 <input
                                     className="w-full rounded-2xl text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/50 border border-primary/30 bg-[#0a1315]/80 h-16 pl-12 pr-4 placeholder:text-slate-600 font-normal transition-all text-base shadow-inner"
-                                    placeholder="ejemplo@dynotech.com"
+                                    placeholder="ejemplo@adsa_taller.com"
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -135,7 +135,7 @@ const PasswordRecovery = () => {
                     <div className="flex flex-col items-center gap-1 opacity-50">
                         <div className="flex items-center gap-1">
                             <span className="material-symbols-outlined text-primary text-2xl">bolt</span>
-                            <span className="font-display font-black text-slate-100 tracking-tighter text-xl">DYNOTECH</span>
+                            <span className="font-display font-black text-slate-100 tracking-tighter text-xl">adsa_taller</span>
                         </div>
                         <p className="text-[9px] text-slate-500 uppercase tracking-[0.4em] ml-1">Power Garage Systems</p>
                     </div>

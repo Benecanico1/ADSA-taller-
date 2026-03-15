@@ -33,7 +33,7 @@ const LeaveFeedbackModal = ({ isOpen, onClose }) => {
         try {
             await addDoc(collection(db, "Feedbacks"), {
                 userId: currentUser?.uid || 'anonymous',
-                userName: currentUser?.displayName || currentUser?.email || 'Piloto Dynotech Power Garage',
+                userName: currentUser?.displayName || currentUser?.email || 'Piloto {appConfig.companyName}',
                 rating: rating,
                 comment: comment.trim(),
                 createdAt: new Date(),
@@ -83,7 +83,7 @@ const LeaveFeedbackModal = ({ isOpen, onClose }) => {
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-5">
                             <div className="text-center space-y-2">
-                                <p className="text-sm font-semibold text-slate-300">¿Cómo evaluarías tu experiencia en Dynotech Power Garage?</p>
+                                <p className="text-sm font-semibold text-slate-300">¿Cómo evaluarías tu experiencia en {appConfig.companyName}?</p>
                                 <div className="flex items-center justify-center gap-1 cursor-pointer">
                                     {[1, 2, 3, 4, 5].map((star) => (
                                         <button

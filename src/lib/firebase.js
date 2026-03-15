@@ -8,9 +8,9 @@ import { getStorage } from "firebase/storage";
 // Your web app's Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyDXFaF4mSV8ct2qxmvBvQf6QG-jj4g2Peo",
-    authDomain: "dynotech-power-garaje.firebaseapp.com",
-    projectId: "dynotech-power-garaje",
-    storageBucket: "dynotech-power-garaje.firebasestorage.app",
+    authDomain: "adsa_taller-power-garaje.firebaseapp.com",
+    projectId: "adsa_taller-power-garaje",
+    storageBucket: "adsa_taller-power-garaje.firebasestorage.app",
     messagingSenderId: "442979078793",
     appId: "1:442979078793:web:b8461be77c8d4881b36c58",
     measurementId: "G-5NYBX1LHTJ"

@@ -18,7 +18,7 @@ const MechanicDashboard = () => {
     const [isDeliveryReportOpen, setIsDeliveryReportOpen] = useState(false);
     const [selectedJobId, setSelectedJobId] = useState(null);
 
-    // Dynotech Power Garage fixed coordinates (approx. Rondeau & Sarmiento, San Martin)
+    // {appConfig.companyName} fixed coordinates (approx. Rondeau & Sarmiento, San Martin)
     const WORKSHOP_COORDS = { lat: -34.5772, lng: -58.5390 };
     const MAX_ALLOWED_DISTANCE_METERS = 300;
 
@@ -292,7 +292,7 @@ const MechanicDashboard = () => {
                     <div className="flex w-full max-w-[1600px] justify-between items-center px-2">
                         <div className="flex flex-col">
                             <h2 className="text-white text-lg font-bold leading-tight tracking-tight">Panel de Control</h2>
-                            <p className="text-[10px] uppercase tracking-widest text-primary font-bold">Dynotech Power Garage</p>
+                            <p className="text-[10px] uppercase tracking-widest text-primary font-bold">{appConfig.companyName}</p>
                         </div>
                         <div className="flex items-center justify-end gap-3">
                             <Link to="/mechanic-profile" className="relative flex items-center justify-center rounded-full h-10 w-10 bg-slate-800 border-2 border-slate-700/80 hover:border-primary/50 transition-colors shadow-sm overflow-hidden group shrink-0" title="Editar Perfil">

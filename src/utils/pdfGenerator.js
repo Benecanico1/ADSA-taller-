@@ -20,7 +20,7 @@ export const generateOTReport = async (otDetails, bikeDetails, userName) => {
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
-    doc.text("Dynotech Power", 15, 20);
+    doc.text("adsa_taller Power", 15, 20);
     doc.setTextColor(13, 204, 242); // Primary color
     doc.text("Garage", 65, 20);
 
@@ -93,7 +93,7 @@ export const generateOTReport = async (otDetails, bikeDetails, userName) => {
         doc.setTextColor(13, 204, 242);
         doc.setFontSize(16);
         doc.setFont("helvetica", "bold");
-        doc.text("CERTIFICADO OFICIAL DYNOTECH", pageWidth / 2, yPos, { align: 'center' });
+        doc.text("CERTIFICADO OFICIAL adsa_taller", pageWidth / 2, yPos, { align: 'center' });
 
         yPos += 6;
         doc.setFontSize(9);
@@ -110,8 +110,8 @@ export const generateOTReport = async (otDetails, bikeDetails, userName) => {
 
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    doc.text("Dynotech Power Garage • Avenida Libertad 4825, CABA", pageWidth / 2, footerY, { align: 'center' });
-    doc.text("Contacto: soporte@dynotech.ar | +54 11 4455-6677", pageWidth / 2, footerY + 5, { align: 'center' });
+    doc.text("{appConfig.companyName} • Avenida Libertad 4825, CABA", pageWidth / 2, footerY, { align: 'center' });
+    doc.text("Contacto: soporte@adsa_taller.ar | +54 11 4455-6677", pageWidth / 2, footerY + 5, { align: 'center' });
 
     // Save PDF
     doc.save(`Reporte_OT_${otDetails.reference}.pdf`);

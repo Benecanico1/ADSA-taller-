@@ -11,7 +11,7 @@ const BusinessIntelligence = () => {
                         <span className="material-symbols-outlined text-3xl">insights</span>
                     </div>
                     <div>
-                        <h1 className="text-lg font-bold leading-tight tracking-tight text-slate-900 dark:text-slate-100">Dynotech BI</h1>
+                        <h1 className="text-lg font-bold leading-tight tracking-tight text-slate-900 dark:text-slate-100">adsa_taller BI</h1>
                         <p className="text-xs text-slate-500 dark:text-slate-400">Inteligencia de Negocio</p>
                     </div>
                 </div>

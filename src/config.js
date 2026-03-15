@@ -2,16 +2,16 @@
 // Basic configuration for UI elements and default application states.
 
 export const appConfig = {
-    appName: "SaaS Dyno Garage",
-    companyName: "Dynoteck Garage Center",
+    appName: "Sist. ADSA Taller",
+    companyName: "ADSA Taller Mecánico",
     currency: "USD",
     currencySymbol: "$",
     social: {
-        instagram: "https://instagram.com/dynoteck",
-        tiktok: "https://tiktok.com/@dynoteck",
+        instagram: "https://instagram.com/adsa_taller",
+        tiktok: "https://tiktok.com/@adsa_taller",
         whatsapp: "+1234567890"
     },
-    defaultLogo: "/vite.svg",
+    defaultLogo: "/pwa-192x192.png",
     colors: {
         primary: "#F59E0B",
         secondary: "#10b981", 

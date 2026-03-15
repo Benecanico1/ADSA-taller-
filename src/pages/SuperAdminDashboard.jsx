@@ -44,7 +44,7 @@ const SuperAdminDashboard = () => {
                         <span className="material-symbols-outlined text-white text-xl">admin_panel_settings</span>
                     </div>
                     <div>
-                        <h1 className="text-sm font-black text-white tracking-wide">Dynotech SaaS</h1>
+                        <h1 className="text-sm font-black text-white tracking-wide">adsa_taller SaaS</h1>
                         <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest mt-0.5">Súper Admin</p>
                     </div>
                 </div>

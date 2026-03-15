@@ -126,7 +126,7 @@ const ActiveReception = () => {
                                 <h2 className="text-xl font-extrabold text-slate-900 dark:text-white mb-1">{vehicle.brand} {vehicle.model}</h2>
                                 <div className="space-y-0.5">
                                     <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1.5 font-medium">
-                                        <span className="material-symbols-outlined text-[16px]">person</span> {user?.displayName || user?.email || 'Cliente Dynotech'}
+                                        <span className="material-symbols-outlined text-[16px]">person</span> {user?.displayName || user?.email || 'Cliente adsa_taller'}
                                     </p>
                                     <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1.5 font-medium">
                                         <span className="material-symbols-outlined text-[16px]">fingerprint</span> Placa: {vehicle.plate}

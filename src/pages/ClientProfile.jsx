@@ -25,7 +25,7 @@ const ClientProfile = () => {
                 } else {
                     // Fallback to basic auth info
                     setUserData({
-                        name: currentUser.displayName || 'Usuario Dynotech',
+                        name: currentUser.displayName || 'Usuario adsa_taller',
                         email: currentUser.email,
                         photoURL: currentUser.photoURL
                     });
@@ -50,7 +50,7 @@ const ClientProfile = () => {
     }, [currentUser]);
 
     const handleWhatsAppSupport = () => {
-        window.open('https://api.whatsapp.com/send?phone=1234567890&text=Hola%20Dynotech%20Power%20Garage,%20necesito%20asistencia%20VIP.', '_blank', 'noopener,noreferrer');
+        window.open('https://api.whatsapp.com/send?phone=1234567890&text=Hola%20adsa_taller%20Power%20Garage,%20necesito%20asistencia%20VIP.', '_blank', 'noopener,noreferrer');
     };
 
     return (
@@ -140,7 +140,7 @@ const ClientProfile = () => {
                             </Link>
                             <div className="flex-1 text-center">
                                 <h2 className="text-white text-lg font-black tracking-tight drop-shadow-md">Mi Perfil</h2>
-                                <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mt-0.5">Dynotech Power Garage VIP</p>
+                                <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mt-0.5">{appConfig.companyName} VIP</p>
                             </div>
                             <div className="flex items-center justify-end gap-2">
                                 <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate('/settings'); }} className="relative z-50 pointer-events-auto flex size-10 items-center justify-center rounded-full bg-[#161b2a] border border-slate-700/80 shadow-inner hover:border-primary/50 transition-colors">
@@ -197,7 +197,7 @@ const ClientProfile = () => {
                                                 className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#1E293B] to-[#334155] text-slate-200 border border-slate-700 py-3 rounded-xl font-black uppercase tracking-widest text-[11px] shadow-lg hover:border-primary hover:text-white transition-all active:scale-[0.98]"
                                             >
                                                 <span className="material-symbols-outlined text-[18px] text-primary">workspace_premium</span>
-                                                Unirse a Dynotech Rewards
+                                                Unirse a adsa_taller Rewards
                                             </button>
                                         </div>
                                     )}

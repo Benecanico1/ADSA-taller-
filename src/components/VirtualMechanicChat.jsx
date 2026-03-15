@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '../lib/firebase';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import app from '../lib/firebase';
+
+const functions = getFunctions(app, 'southamerica-east1');
 
 const VirtualMechanicChat = () => {
     const [isOpen, setIsOpen] = useState(false);

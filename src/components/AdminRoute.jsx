@@ -18,7 +18,7 @@ const AdminRoute = ({ children }) => {
         return <Navigate to="/login" replace />;
     }
 
-    const permittedRoles = ['admin', 'mechanic', 'super_admin'];
+    const permittedRoles = ['admin', 'admin_empresa', 'mechanic', 'super_admin'];
     
     if (!permittedRoles.includes(currentUser.role)) {
         // Logged in but not an admin or mechanic, redirect to normal dashboard

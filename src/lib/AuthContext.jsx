@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
                         userData = {
                             email: user.email,
                             createdAt: new Date(),
-                            role: 'unassigned', // User has NO permissions until an admin assigns a role/empresa
+                            role: 'client', // Default role for standard users
                             empresaId: null, // No company assigned yet
                             sucursalId: null, // No branch assigned yet
                             profileSetupComplete: false
@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
                 } catch (error) {
                     console.error("AuthContext Critical Error during user initialization:", error);
                     // Fallback to absolute minimum safety profile so the app handles errors safely
-                    setCurrentUser({ ...user, role: 'unassigned' });
+                    setCurrentUser({ ...user, role: 'client' });
                 }
             } else {
                 setCurrentUser(null);
